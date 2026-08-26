@@ -13,7 +13,7 @@ namespace mousegame
     {
         private static string connectionString
         {
-            get { return "Server=localhost;Port=3306;Database=mousegame;Uid=root;password=ten9eight;"; }
+            get { return "Server=localhost;Port=3306;Database=mousegame;Uid=root;password=Dekuran1011$;"; }
 
         }
 
