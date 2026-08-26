@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "ODsKNKHYQ5A=",
+  "dgSpecHash": "o6X4B+Ib+fQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Declan\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Declan\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Declan\\.nuget\\packages\\mysqlconnector\\2.6.2\\mysqlconnector.2.6.2.nupkg.sha512"
+  ],
   "logs": []
 }

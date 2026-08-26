@@ -1,6 +1,6 @@
 ﻿namespace mousegame
 {
-    partial class Form1
+    partial class LoginForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,10 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
+            SuspendLayout();
+            // 
+            // LoginForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Name = "LoginForm";
             Text = "Form1";
+            ResumeLayout(false);
         }
 
         #endregion
