@@ -16,6 +16,8 @@ namespace mousegame
             var dao = new LoginDAO();
             string summary = dao.GetAllUsersSummary();
             MessageBox.Show(summary, "Users");
+            var gameForm = new GameForm();
+            gameForm.Show();
         }
     }
 }

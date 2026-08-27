@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("mousegame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2042a3259bdcaf04c31c4ee05ddf3226c2a8348b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+068bd1238e07f1cbe28bd87894e7e0481ee57e33")]
 [assembly: System.Reflection.AssemblyProductAttribute("mousegame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("mousegame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

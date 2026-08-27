@@ -180,4 +180,26 @@ DELIMITER ;
 
 CALL CreateTables();
 
-SELECT * FROM cheese;
+DELIMITER $$
+CREATE PROCEDURE GetAllUsers()
+
+BEGIN
+
+    SELECT * FROM `user`;
+    
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE GetTilesForGame(IN p_game INT)
+
+BEGIN
+
+    SELECT * 
+    FROM tile
+    WHERE game_id = p_game;
+    
+END $$
+
+DELIMITER ;
