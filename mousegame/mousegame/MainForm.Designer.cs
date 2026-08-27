@@ -36,6 +36,8 @@
             manageUsersBtn = new Button();
             signOutBtn = new Button();
             deleteAccountBtn = new Button();
+            prototypeLabel = new Label();
+            label2 = new Label();
             SuspendLayout();
             // 
             // titleLabel
@@ -114,11 +116,31 @@
             deleteAccountBtn.Text = "Delete Account";
             deleteAccountBtn.UseVisualStyleBackColor = true;
             // 
+            // prototypeLabel
+            // 
+            prototypeLabel.AutoSize = true;
+            prototypeLabel.Location = new Point(190, 364);
+            prototypeLabel.Name = "prototypeLabel";
+            prototypeLabel.Size = new Size(254, 15);
+            prototypeLabel.TabIndex = 13;
+            prototypeLabel.Text = "Click here to test the admin DAO connection >";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(218, 211);
+            label2.Name = "label2";
+            label2.Size = new Size(226, 15);
+            label2.TabIndex = 14;
+            label2.Text = "Click here to proceed to the game form >";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1046, 583);
+            Controls.Add(label2);
+            Controls.Add(prototypeLabel);
             Controls.Add(deleteAccountBtn);
             Controls.Add(signOutBtn);
             Controls.Add(manageUsersBtn);
@@ -143,5 +165,7 @@
         private Button manageUsersBtn;
         private Button signOutBtn;
         private Button deleteAccountBtn;
+        private Label prototypeLabel;
+        private Label label2;
     }
 }
