@@ -180,6 +180,8 @@ DELIMITER ;
 
 CALL CreateTables();
 
+-- Procedure for testing the LoginDAO in the prototype
+
 DELIMITER $$
 CREATE PROCEDURE GetAllUsers()
 
@@ -191,6 +193,8 @@ END $$
 
 DELIMITER ;
 
+-- Procedure for testing the GameDAO in the prototype
+
 DELIMITER $$
 CREATE PROCEDURE GetTilesForGame(IN p_game INT)
 
@@ -199,6 +203,23 @@ BEGIN
     SELECT * 
     FROM tile
     WHERE game_id = p_game;
+    
+END $$
+
+DELIMITER ;
+
+-- Procedure for testing the AdminDAO in the prototype
+
+DELIMITER $$
+CREATE PROCEDURE GetAllGames()
+
+BEGIN
+
+    SELECT g.game_id, g.`name`, COUNT(m.user_id) AS player_count
+    FROM game g
+    LEFT JOIN mouse m
+	ON m.game_id = g.game_id
+    GROUP BY g.game_id, g.`name`;
     
 END $$
 
