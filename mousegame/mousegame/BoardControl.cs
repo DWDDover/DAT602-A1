@@ -17,7 +17,7 @@ namespace mousegame
 
         public void LoadBoard(List<TileInfo> tiles)
         {
-            int tileSize = 40;
+            int tileSize = 55;
 
             foreach (var tile in tiles)
             {

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj": {}
+    "C:\\Users\\decla\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj": {
+    "C:\\Users\\decla\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj",
+        "projectUniqueName": "C:\\Users\\decla\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj",
         "projectName": "mousegame",
-        "projectPath": "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj",
-        "packagesPath": "C:\\Users\\Declan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Declan\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\obj\\",
+        "projectPath": "C:\\Users\\decla\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\mousegame.csproj",
+        "packagesPath": "C:\\Users\\decla\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\decla\\source\\repos\\DAT602-A1\\mousegame\\mousegame\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Declan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\decla\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
