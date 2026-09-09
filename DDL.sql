@@ -27,6 +27,7 @@ BEGIN
 	   username VARCHAR(50) NOT NULL,
 	   `Password` varchar(50) NOT NULL,
 	   `locked` INT NOT NULL,
+       logged_in BOOL DEFAULT FALSE,
 	   high_score INT,
 	   `admin` INT NOT NULL,
 	   login_attempts INT NOT NULL DEFAULT 0
@@ -241,15 +242,65 @@ DELIMITER ;
 
 -- Milestone 2 Procedures
 
--- Player Login includeing Lockout
+-- Player Login including Lockout
 
 DELIMITER $$
-CREATE PROCEDURE sp_login(IN username VARCHAR(50), `password` VARCHAR(50))
+CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), `p_password` VARCHAR(50))
 
 BEGIN
-
 	
+	DECLARE attempts INT;
+    DECLARE acc_locked INT;
+    SELECT `locked` AS acc_locked
+    INTO acc_locked
+    FROM `user`
+    WHERE username = p_username;
+    
+	IF acc_locked = 1 THEN
+		SELECT 'locked' AS status;
+	ELSEIF EXISTS ( 
+					SELECT * 
+					FROM `user`
+					WHERE p_username = username AND `password` = p_password
+				) THEN
+		SELECT 'success' AS status;
+        UPDATE `user`
+        SET login_attempts = 0,
+			logged_in = TRUE
+        WHERE username = p_username;
+	ELSEIF EXISTS ( 
+					SELECT * 
+					FROM `user`
+					WHERE p_username = username AND `password` <> p_password
+				) THEN
+		UPDATE `user`
+        SET login_attempts = login_attempts + 1, 
+			`locked` = IF((login_attempts + 1) > 4, 1, 0)
+        WHERE p_username = username;
+		SELECT 'failed' AS status;
+	ELSE
+		SELECT 'failed' AS status;
+	END IF;
 
 END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+-- CALL sp_login('michael', 'password123');
+-- CALL sp_login('michael', 'wrongpassword');
+-- CALL sp_login('wrongusername', 'wrongpassword');
+-- CALL sp_login('rachel433', 'mypassword2');
+
+ -- Player registration
+ DELIMITER $$
+ CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
+ 
+ BEGIN
+ 
+	
+ 
+ END $$
 
 DELIMITER ;
