@@ -88,34 +88,48 @@ BEGIN
     );
      
 	ALTER TABLE mouse
-		ADD CONSTRAINT fk_user_mouse FOREIGN KEY (user_id) REFERENCES `user`(user_id),
-        ADD CONSTRAINT fk_game_mouse FOREIGN KEY (game_id) REFERENCES game(game_id),
-        ADD CONSTRAINT fk_tile_mouse FOREIGN KEY (tile_id) REFERENCES tile(tile_id),
-        ADD CONSTRAINT fk_next_tile_mouse FOREIGN KEY (next_tile) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_user_mouse 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_mouse 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_tile_mouse 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_next_tile_mouse 
+        FOREIGN KEY (next_tile) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	ALTER TABLE game
-		ADD CONSTRAINT fk_user_game FOREIGN KEY (user_id) REFERENCES `user`(user_id);
+		ADD CONSTRAINT fk_user_game 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE;
 
 	ALTER TABLE message
-		ADD CONSTRAINT fk_user_message FOREIGN KEY (user_id) REFERENCES `user`(user_id),
-        ADD CONSTRAINT fk_game_message FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_user_message 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_message 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE tile
-		ADD CONSTRAINT fk_tile_game FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_tile_game 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE inventory
-		ADD CONSTRAINT fk_inventory_mouse FOREIGN KEY (user_id, game_id) REFERENCES mouse(user_id, game_id),
-        ADD CONSTRAINT fk_inventory_mousetrap FOREIGN KEY (mousetrap_id) REFERENCES mousetrap(mousetrap_id);
+		ADD CONSTRAINT fk_inventory_mouse 
+        FOREIGN KEY (user_id, game_id) REFERENCES mouse(user_id, game_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_inventory_mousetrap 
+        FOREIGN KEY (mousetrap_id) REFERENCES mousetrap(mousetrap_id) ON DELETE CASCADE;
         
 	ALTER TABLE cheese
-		ADD CONSTRAINT fk_tile_cheese FOREIGN KEY (tile_id) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_tile_cheese 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	ALTER TABLE cat
-		ADD CONSTRAINT fk_tile_cat FOREIGN KEY (tile_id) REFERENCES tile(tile_id),
-        ADD CONSTRAINT fk_game_cat FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_tile_cat 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_cat 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE mousetrap
-		ADD CONSTRAINT fk_tile_mousetrap FOREIGN KEY (tile_id) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_tile_mousetrap 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	INSERT INTO `user`(user_id, username, `password`, `locked`, high_score, `admin`, login_attempts)
 		VALUES
@@ -221,6 +235,21 @@ BEGIN
 	ON m.game_id = g.game_id
     GROUP BY g.game_id, g.`name`;
     
+END $$
+
+DELIMITER ;
+
+-- Milestone 2 Procedures
+
+-- Player Login includeing Lockout
+
+DELIMITER $$
+CREATE PROCEDURE sp_login(IN username VARCHAR(50), `password` VARCHAR(50))
+
+BEGIN
+
+	
+
 END $$
 
 DELIMITER ;
