@@ -23,9 +23,9 @@ BEGIN
     DROP TABLE IF EXISTS `inventory`;
     
 	CREATE TABLE `user`(
-	   user_id INT PRIMARY KEY,
+	   user_id INT PRIMARY KEY AUTO_INCREMENT,
 	   username VARCHAR(50) NOT NULL,
-	   `Password` varchar(50) NOT NULL,
+	   `password` varchar(50) NOT NULL,
 	   `locked` INT NOT NULL,
        logged_in BOOL DEFAULT FALSE,
 	   high_score INT,
@@ -245,7 +245,7 @@ DELIMITER ;
 -- Player Login including Lockout
 
 DELIMITER $$
-CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), `p_password` VARCHAR(50))
+CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), p_password VARCHAR(50))
 
 BEGIN
 	
@@ -299,8 +299,31 @@ DELIMITER ;
  
  BEGIN
  
+	IF EXISTS(
+				SELECT *
+                FROM `user`
+                WHERE username = p_username
+                ) THEN
+		SELECT 'duplicate_username' AS status;
 	
+    ELSEIF CHAR_LENGTH(p_username) < 6 THEN
+		SELECT 'username_short' AS status;
+        
+	ELSEIF CHAR_LENGTH(p_password) < 6 THEN
+		SELECT 'password_short' AS status;
+	
+	ELSE
+		INSERT INTO `user`(username, `password`, `locked`, high_score, `admin`, login_attempts)
+		VALUES
+			(p_username, p_password, 0, 0, 0, 0);
+		SELECT 'success' AS status;
+        
+	END IF;
  
  END $$
 
 DELIMITER ;
+
+CALL sp_registration('testplayer', 'testpassword');
+CALL sp_registration('te', 'testpassword');
+CALL sp_registration('testing', 'te');
