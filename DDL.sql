@@ -332,7 +332,8 @@ DELIMITER ;
 
 -- Laying out tiles on a game board
 
--- includes 2 steps, making a new game and creating the tiles
+-- includes 3 steps, making a new game, creating the tiles, and creating a mouse on
+-- the starting tile for the games host
 
 DELIMITER $$
 CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
@@ -340,6 +341,7 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 	BEGIN
         
 		DECLARE new_game_id INT;
+        DECLARE start_tile_id INT;
         
         START TRANSACTION;
         
@@ -360,6 +362,15 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 			SET @r = @r + 1;
 		END WHILE;
         
+        SET start_tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE `row` = 1 AND `col` = 1 AND game_id = new_game_id);
+        
+        INSERT INTO mouse(user_id, game_id, tile_id, score)
+        VALUES
+			(p_gamehost_id, new_game_id, start_tile_id, 0);
+        
 	COMMIT;
 		
 	END $$
@@ -372,9 +383,9 @@ DELIMITER ;
 
  -- Placing an item on a tile
  -- Needs to either create a new item or place an existing item(mousetrap)
- -- 3 different procedures, armed mousetrap, unarmed mousetrap, and cheese
+
  DELIMITER $$
-CREATE PROCEDURE sp_placecheese(IN p_tile_id INT)
+CREATE PROCEDURE sp_placeitem(IN p_tile_id INT, IN item VARCHAR(50))
 
 	BEGIN
         
