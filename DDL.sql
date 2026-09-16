@@ -43,7 +43,7 @@ BEGIN
 	);
     
 	CREATE TABLE game(
-		game_id INT PRIMARY KEY,
+		game_id INT PRIMARY KEY AUTO_INCREMENT,
         user_id INT NOT NULL,
         `name` VARCHAR(50)
 	);
@@ -294,6 +294,7 @@ DELIMITER ;
 -- CALL sp_login('rachel433', 'mypassword2');
 
  -- Player registration
+ 
  DELIMITER $$
  CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
  
@@ -324,6 +325,61 @@ DELIMITER ;
 
 DELIMITER ;
 
-CALL sp_registration('testplayer', 'testpassword');
-CALL sp_registration('te', 'testpassword');
-CALL sp_registration('testing', 'te');
+-- CALL sp_registration('testplayer', 'testpassword');
+-- CALL sp_registration('te', 'testpassword');
+-- CALL sp_registration('testing', 'te');
+-- select * from `user`;
+
+-- Laying out tiles on a game board
+
+-- includes 2 steps, making a new game and creating the tiles
+
+DELIMITER $$
+CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
+
+	BEGIN
+        
+		DECLARE new_game_id INT;
+        
+        START TRANSACTION;
+        
+        INSERT INTO game(user_id, `name`)
+        VALUES
+			(p_gamehost_id, p_gamename);
+            
+		SET new_game_id = LAST_INSERT_ID();
+
+		SET @r = 1;
+		WHILE @r <= 12 DO
+			SET @c = 1;
+			WHILE @c <= 12 DO
+				INSERT INTO tile (game_id, `row`, `col`)
+				VALUES (new_game_id, @r, @c);
+				SET @c = @c + 1;
+			END WHILE;
+			SET @r = @r + 1;
+		END WHILE;
+        
+	COMMIT;
+		
+	END $$
+
+DELIMITER ;
+
+-- CALL sp_newgame(2, 'testgame');
+-- SELECT * FROM game;
+-- SELECT * FROM tile;
+
+ -- Placing an item on a tile
+ -- Needs to either create a new item or place an existing item(mousetrap)
+ -- 3 different procedures, armed mousetrap, unarmed mousetrap, and cheese
+ DELIMITER $$
+CREATE PROCEDURE sp_placecheese(IN p_tile_id INT)
+
+	BEGIN
+        
+		
+		
+	END $$
+
+DELIMITER ;
