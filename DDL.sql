@@ -70,7 +70,7 @@ BEGIN
     );
     
     CREATE TABLE cheese(
-		cheese_id INT PRIMARY KEY,
+		cheese_id INT PRIMARY KEY AUTO_INCREMENT,
         tile_id INT NOT NULL,
         `value` INT NOT NULL
     );
@@ -384,8 +384,91 @@ DELIMITER ;
  -- Placing an item on a tile
  -- Needs to either create a new item or place an existing item(mousetrap)
 
- DELIMITER $$
-CREATE PROCEDURE sp_placeitem(IN p_tile_id INT, IN item VARCHAR(50))
+-- Procedure to return free tiles in a game
+
+DROP PROCEDURE IF EXISTS sp_free_tiles;
+
+DELIMITER $$
+CREATE PROCEDURE sp_free_tiles(IN p_game_id INT)
+
+	BEGIN
+	
+    CREATE TEMPORARY TABLE IF NOT EXISTS free_tiles(
+		id INT
+	);
+    
+    TRUNCATE TABLE free_tiles;
+    
+    INSERT INTO free_tiles (id)
+	SELECT tile_id
+			FROM tile
+			WHERE game_id = p_game_id
+				AND tile_id NOT IN (    
+										SELECT tile_id
+										FROM mouse
+										UNION SELECT tile_id
+										FROM cheese   
+										UNION SELECT tile_id
+										FROM cat
+										UNION SELECT tile_id
+										FROM mousetrap
+										WHERE tile_id IS NOT NULL
+									);
+		
+	END $$
+
+DELIMITER ;
+
+-- CALL sp_free_tiles(1);
+
+-- place cheese
+
+DROP PROCEDURE IF EXISTS sp_place_cheese;
+
+DELIMITER $$
+CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
+
+	BEGIN
+        
+		DECLARE placement_tile_id INT;
+		CALL sp_free_tiles(p_game_id);
+        
+        SET placement_tile_id = (
+									SELECT id
+									FROM free_tiles
+									ORDER BY RAND()
+									LIMIT 1);
+                                    
+		INSERT INTO cheese(tile_id, `value`)
+        VALUES
+			(placement_tile_id, 100);
+            
+		DROP TEMPORARY TABLE IF EXISTS free_tiles;
+        
+	END $$
+
+DELIMITER ;
+
+SELECT * FROM cheese;
+CALL sp_place_cheese(1)
+
+-- place trap pickup
+
+DELIMITER $$
+CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
+
+	BEGIN
+        
+		DECLARE placement_tile_id INT;
+		
+	END $$
+
+DELIMITER ;
+
+-- activate trap
+
+DELIMITER $$
+CREATE PROCEDURE sp_activate_trap(IN p_tile_id INT, IN p_mousetrap_id INT)
 
 	BEGIN
         
@@ -394,3 +477,33 @@ CREATE PROCEDURE sp_placeitem(IN p_tile_id INT, IN item VARCHAR(50))
 	END $$
 
 DELIMITER ;
+
+SELECT tile_id FROM tile WHERE game_id = 1;
+
+
+
+SELECT tile_id
+        FROM tile
+        WHERE game_id = 1
+			AND (tile_id NOT IN (    
+									SELECT tile_id
+									FROM mouse
+								))
+			AND (tile_id NOT IN (    
+									SELECT tile_id
+									FROM cheese
+								))
+			AND (tile_id NOT IN (    
+									SELECT tile_id
+									FROM cat
+								))
+			AND (tile_id NOT IN (    
+									SELECT tile_id
+									FROM mousetrap
+                                    WHERE tile_id IS NOT NULL
+								));
+                                
+SELECT * FROM mouse;
+SELECT * FROM cat;
+SELECT * FROM mousetrap;
+SELECT * FROM cheese;

@@ -14,5 +14,10 @@ namespace mousegame
         {
             InitializeComponent();
         }
+
+        private void JoinGameForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
