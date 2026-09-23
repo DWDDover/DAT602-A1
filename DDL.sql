@@ -76,7 +76,7 @@ BEGIN
     );
      
 	CREATE TABLE mousetrap(
-		mousetrap_id INT PRIMARY KEY,
+		mousetrap_id INT PRIMARY KEY AUTO_INCREMENT,
         activated INT NOT NULL,
         tile_id INT
     );
@@ -386,21 +386,15 @@ DELIMITER ;
 
 -- Procedure to return free tiles in a game
 
-DROP PROCEDURE IF EXISTS sp_free_tiles;
+DROP FUNCTION IF EXISTS sp_free_tiles;
 
 DELIMITER $$
-CREATE PROCEDURE sp_free_tiles(IN p_game_id INT)
+CREATE FUNCTION sp_free_tiles(p_game_id INT) RETURNS INT
+	DETERMINISTIC
 
-	BEGIN
-	
-    CREATE TEMPORARY TABLE IF NOT EXISTS free_tiles(
-		id INT
-	);
-    
-    TRUNCATE TABLE free_tiles;
-    
-    INSERT INTO free_tiles (id)
-	SELECT tile_id
+BEGIN
+	DECLARE free_tile INT;
+	SELECT tile_id INTO free_tile
 			FROM tile
 			WHERE game_id = p_game_id
 				AND tile_id NOT IN (    
@@ -413,13 +407,15 @@ CREATE PROCEDURE sp_free_tiles(IN p_game_id INT)
 										UNION SELECT tile_id
 										FROM mousetrap
 										WHERE tile_id IS NOT NULL
-									);
+									)
+			ORDER BY RAND()
+            LIMIT 1;
+            
+	RETURN free_tile;
 		
-	END $$
+END $$
 
 DELIMITER ;
-
--- CALL sp_free_tiles(1);
 
 -- place cheese
 
@@ -428,42 +424,44 @@ DROP PROCEDURE IF EXISTS sp_place_cheese;
 DELIMITER $$
 CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
 
-	BEGIN
+BEGIN
+	DECLARE random_tile INT;
+    
+    SET random_tile = sp_free_tiles(p_game_id);
+    
+	INSERT INTO cheese(tile_id, `value`)
+	VALUES
+		(random_tile, 100);
         
-		DECLARE placement_tile_id INT;
-		CALL sp_free_tiles(p_game_id);
-        
-        SET placement_tile_id = (
-									SELECT id
-									FROM free_tiles
-									ORDER BY RAND()
-									LIMIT 1);
-                                    
-		INSERT INTO cheese(tile_id, `value`)
-        VALUES
-			(placement_tile_id, 100);
-            
-		DROP TEMPORARY TABLE IF EXISTS free_tiles;
-        
-	END $$
+END $$
 
 DELIMITER ;
-
+        
 SELECT * FROM cheese;
-CALL sp_place_cheese(1)
+CALL sp_place_cheese(1);
 
 -- place trap pickup
+
+DROP PROCEDURE IF EXISTS sp_place_trap;
 
 DELIMITER $$
 CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
 
-	BEGIN
+BEGIN
+	DECLARE random_tile INT;
+    
+    SET random_tile = sp_free_tiles(p_game_id);
+    
+	INSERT INTO mousetrap(activated, tile_id)
+	VALUES
+		(0, random_tile);
         
-		DECLARE placement_tile_id INT;
-		
-	END $$
+END $$
 
 DELIMITER ;
+
+CALL sp_place_trap(1);
+SELECT * FROM mousetrap;
 
 -- activate trap
 
