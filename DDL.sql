@@ -384,7 +384,7 @@ DELIMITER ;
  -- Placing an item on a tile
  -- Needs to either create a new item or place an existing item(mousetrap)
 
--- Procedure to return free tiles in a game
+-- Function to return a random free tile in a game
 
 DROP FUNCTION IF EXISTS sp_free_tiles;
 
@@ -465,8 +465,31 @@ SELECT * FROM mousetrap;
 
 -- activate trap
 
+-- need a function here to check if a tile is adjacent to a mouse and also empty
+-- will be used when moving also
+
 DELIMITER $$
-CREATE PROCEDURE sp_activate_trap(IN p_tile_id INT, IN p_mousetrap_id INT)
+CREATE FUNCTION sp_tile_available(p_mouse_id INT) RETURNS BOOL
+	DETERMINISTIC
+
+BEGIN
+	DECLARE mouse_tile INT;
+    DECLARE available BOOL;
+    
+	SELECT tile_id INTO mouse_tile
+			FROM mouse
+			WHERE mouse_id = p_mouse_id;
+            
+	
+    
+	RETURN available;
+		
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_activate_trap(IN p_mouse_id INT, IN p_tile_id INT, IN p_mousetrap_id INT)
 
 	BEGIN
         
@@ -477,31 +500,3 @@ CREATE PROCEDURE sp_activate_trap(IN p_tile_id INT, IN p_mousetrap_id INT)
 DELIMITER ;
 
 SELECT tile_id FROM tile WHERE game_id = 1;
-
-
-
-SELECT tile_id
-        FROM tile
-        WHERE game_id = 1
-			AND (tile_id NOT IN (    
-									SELECT tile_id
-									FROM mouse
-								))
-			AND (tile_id NOT IN (    
-									SELECT tile_id
-									FROM cheese
-								))
-			AND (tile_id NOT IN (    
-									SELECT tile_id
-									FROM cat
-								))
-			AND (tile_id NOT IN (    
-									SELECT tile_id
-									FROM mousetrap
-                                    WHERE tile_id IS NOT NULL
-								));
-                                
-SELECT * FROM mouse;
-SELECT * FROM cat;
-SELECT * FROM mousetrap;
-SELECT * FROM cheese;
