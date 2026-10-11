@@ -242,7 +242,7 @@ DELIMITER ;
 
 -- Milestone 2 Procedures
 
--- Player Login including Lockout
+-- Player Login including Lockout (1)
 
 DELIMITER $$
 CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), p_password VARCHAR(50))
@@ -293,7 +293,7 @@ DELIMITER ;
 -- CALL sp_login('wrongusername', 'wrongpassword');
 -- CALL sp_login('rachel433', 'mypassword2');
 
- -- Player registration
+ -- Player registration (2)
  
  DELIMITER $$
  CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
@@ -330,7 +330,7 @@ DELIMITER ;
 -- CALL sp_registration('testing', 'te');
 -- select * from `user`;
 
--- Laying out tiles on a game board
+-- Laying out tiles on a game board (3)
 
 -- includes 3 steps, making a new game, creating the tiles, and creating a mouse on
 -- the starting tile for the games host
@@ -381,7 +381,7 @@ DELIMITER ;
 -- SELECT * FROM game;
 -- SELECT * FROM tile;
 
- -- Placing an item on a tile
+ -- Placing an item on a tile (4)
  -- Needs to either create a new item or place an existing item(mousetrap)
 
 -- Function to return a random free tile in a game
@@ -469,29 +469,31 @@ SELECT * FROM mousetrap;
 -- will be used when moving also
 
 DELIMITER $$
-CREATE FUNCTION f_tile_available(p_mouse_id INT, p_tile_id INT) RETURNS BOOL
+CREATE FUNCTION f_tile_available(p_user_id INT, p_game_id INT, p_tile_id INT) RETURNS BOOL
 	DETERMINISTIC
 
 BEGIN
 	DECLARE mouse_tile INT;
-    DECLARE available BOOL;
     
 	SELECT tile_id INTO mouse_tile
 			FROM mouse
-			WHERE mouse_id = p_mouse_id;
+			WHERE user_id = p_user_id AND game_id = p_game_id;
             
-	SELECT FALSE INTO available;
             
 	IF p_tile_id IN ( 
-					SELECT tile_id
+					SELECT t.tile_id
                     FROM tile t
                     join tile t2
-                    ON t2.id = p_tile_id
+                    ON t2.tile_id = mouse_tile
                     WHERE 
 						((t2.row = t.row + 1 ) OR (t2.row = t.row -1 ) OR (t2.row = t.row )) AND
 						((t2.col = t.col + 1 ) OR (t2.col = t.col -1 )  OR (t2.col = t.col ) )
 					)
-		THEN SELECT TRUE AS available;
+		THEN RETURN TRUE;
+        
+        ELSE
+        RETURN FALSE;
+        
         END IF;
     
 	RETURN available;
@@ -501,13 +503,13 @@ END $$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE sp_activate_trap(IN p_mouse_id INT, IN p_tile_id INT, IN p_mousetrap_id INT)
+CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id INT, IN p_mousetrap_id INT)
 
 	BEGIN
         
 	DECLARE available BOOL;
     
-    SET available = f_tile_available(p_mouse_id, p_game_id);
+    SET available = f_tile_available(p_user_id, p_game_id, p_tile_id);
     
     IF available = TRUE
     THEN 
@@ -524,3 +526,23 @@ CREATE PROCEDURE sp_activate_trap(IN p_mouse_id INT, IN p_tile_id INT, IN p_mous
 DELIMITER ;
 
 SELECT tile_id FROM tile WHERE game_id = 1;
+
+select * from mouse;
+select * from inventory;
+-- call sp_activate_trap(1, 1, 8, 1);
+-- select * from mousetrap;
+-- select f_tile_available(1, 1, 40);
+
+-- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
+
+DELIMITER $$
+CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id INT)
+
+	BEGIN
+
+	
+
+	END $$
+
+DELIMITER ;
+
