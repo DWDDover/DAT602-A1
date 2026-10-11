@@ -386,10 +386,10 @@ DELIMITER ;
 
 -- Function to return a random free tile in a game
 
-DROP FUNCTION IF EXISTS sp_free_tiles;
+DROP FUNCTION IF EXISTS f_free_tiles;
 
 DELIMITER $$
-CREATE FUNCTION sp_free_tiles(p_game_id INT) RETURNS INT
+CREATE FUNCTION f_free_tile(p_game_id INT) RETURNS INT
 	DETERMINISTIC
 
 BEGIN
@@ -427,7 +427,7 @@ CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
 BEGIN
 	DECLARE random_tile INT;
     
-    SET random_tile = sp_free_tiles(p_game_id);
+    SET random_tile = f_free_tile(p_game_id);
     
 	INSERT INTO cheese(tile_id, `value`)
 	VALUES
@@ -450,7 +450,7 @@ CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
 BEGIN
 	DECLARE random_tile INT;
     
-    SET random_tile = sp_free_tiles(p_game_id);
+    SET random_tile = f_free_tile(p_game_id);
     
 	INSERT INTO mousetrap(activated, tile_id)
 	VALUES
@@ -469,7 +469,7 @@ SELECT * FROM mousetrap;
 -- will be used when moving also
 
 DELIMITER $$
-CREATE FUNCTION sp_tile_available(p_mouse_id INT) RETURNS BOOL
+CREATE FUNCTION f_tile_available(p_mouse_id INT, p_tile_id INT) RETURNS BOOL
 	DETERMINISTIC
 
 BEGIN
@@ -480,7 +480,19 @@ BEGIN
 			FROM mouse
 			WHERE mouse_id = p_mouse_id;
             
-	
+	SELECT FALSE INTO available;
+            
+	IF p_tile_id IN ( 
+					SELECT tile_id
+                    FROM tile t
+                    join tile t2
+                    ON t2.id = p_tile_id
+                    WHERE 
+						((t2.row = t.row + 1 ) OR (t2.row = t.row -1 ) OR (t2.row = t.row )) AND
+						((t2.col = t.col + 1 ) OR (t2.col = t.col -1 )  OR (t2.col = t.col ) )
+					)
+		THEN SELECT TRUE AS available;
+        END IF;
     
 	RETURN available;
 		
@@ -493,7 +505,9 @@ CREATE PROCEDURE sp_activate_trap(IN p_mouse_id INT, IN p_tile_id INT, IN p_mous
 
 	BEGIN
         
-		
+	DECLARE available BOOL;
+    
+    SET available = f_tile_available(p_mouse_id, p_game_id);
 		
 	END $$
 
