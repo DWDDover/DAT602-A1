@@ -508,6 +508,16 @@ CREATE PROCEDURE sp_activate_trap(IN p_mouse_id INT, IN p_tile_id INT, IN p_mous
 	DECLARE available BOOL;
     
     SET available = f_tile_available(p_mouse_id, p_game_id);
+    
+    IF available = TRUE
+    THEN 
+		UPDATE mousetrap
+        SET tile_id = p_tile_id, activated = 1
+        WHERE mousetrap_id = p_mousetrap_id;
+        
+        DELETE FROM inventory
+        WHERE mousetrap_id = p_mousetrap_id;
+	END IF;
 		
 	END $$
 
