@@ -132,10 +132,11 @@ BEGIN
 	INSERT INTO `user`(user_id, username, `password`, `locked`, high_score, `admin`, login_attempts)
 		VALUES
 			(1, 'michael', 'password123', 0, 400, 0, 2),
-            (2, 'admin', 'apple66', 0, 200, 1, 0),
+            (2, 'badmin', 'apple66', 0, 200, 1, 0),
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
-            (5, 'rachel433', 'mypassword2', 1, 100, 0, 0);
+            (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
+            (6, 'admin', 'Admin123', 0, 0, 1, 0);
             
 	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
