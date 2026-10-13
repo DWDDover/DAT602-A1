@@ -285,10 +285,10 @@ DELIMITER ;
 
  -- Test procedure calls
 
--- CALL sp_login('michael', 'password123');
--- CALL sp_login('michael', 'wrongpassword');
--- CALL sp_login('wrongusername', 'wrongpassword');
--- CALL sp_login('rachel433', 'mypassword2');
+CALL sp_login('michael', 'password123');
+CALL sp_login('michael', 'wrongpassword');
+CALL sp_login('wrongusername', 'wrongpassword');
+CALL sp_login('rachel433', 'mypassword2');
 
  -- Player registration (2)
  
@@ -322,10 +322,9 @@ DELIMITER ;
 
 DELIMITER ;
 
--- CALL sp_registration('testplayer', 'testpassword');
--- CALL sp_registration('te', 'testpassword');
--- CALL sp_registration('testing', 'te');
--- select * from `user`;
+ -- Test procedure calls
+
+CALL sp_registration('testplayer', 'testpassword');
 
 -- Laying out tiles on a game board (3)
 
@@ -374,9 +373,9 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 
 DELIMITER ;
 
--- CALL sp_newgame(2, 'testgame');
--- SELECT * FROM game;
--- SELECT * FROM tile;
+ -- Test procedure calls
+
+CALL sp_newgame(3, "testgame");
 
  -- Placing an item on a tile (4)
  -- Needs to either create a new item or place an existing item(mousetrap)
@@ -433,8 +432,9 @@ BEGIN
 END $$
 
 DELIMITER ;
-        
-SELECT * FROM cheese;
+
+ -- Test procedure calls
+
 CALL sp_place_cheese(1);
 
 -- place trap pickup
@@ -457,8 +457,9 @@ END $$
 
 DELIMITER ;
 
+ -- Test procedure calls
+
 CALL sp_place_trap(1);
-SELECT * FROM mousetrap;
 
 -- activate trap
 
@@ -538,6 +539,10 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 	END $$
 
 DELIMITER ;
+
+ -- Test procedure calls
+ 
+ CALL sp_activate_trap(1, 1, 8, 1);
 
 -- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
 -- also includes update data of a player (11) when adding score and moving location
@@ -620,6 +625,9 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 
 DELIMITER ;
 
+ -- Test procedure calls
+ 
+ CALL sp_move_player(1, 1, 6);
 
  -- Move an item (NPC effect) (8)
  
@@ -686,6 +694,10 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
 
 DELIMITER ;
 
+ -- Test procedure calls
+ 
+ CALL sp_move_cat(1);
+
  -- Kill Running games (9)
  
  DELIMITER $$
@@ -706,6 +718,10 @@ CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 	END $$
 
 DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_kill_game(2);
 
  -- Add new players, this is adding players to a game (10)
   -- for the admin adding users the same registration procedure
@@ -732,8 +748,13 @@ CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 
 DELIMITER ;
 
+ -- Test procedure calls
+
+CALL sp_add_player(5, 1);
+
  -- update data of a player (11)
- -- this updates the username of a user
+ -- one procedure to update the username of a user
+-- and one to remove the locked status from a user
  
 DELIMITER $$
 CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
@@ -747,6 +768,25 @@ CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
 	END $$
 
 DELIMITER ;
+
+CALL sp_update_user(1, "michaelchanged");
+
+DELIMITER $$
+CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
+
+	BEGIN
+        
+        UPDATE `user`
+        SET `locked` = 0
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_unlock_user(5);
 
  -- delete a player (12)
  -- 2 procedures to remove a player from a game and delete users
@@ -765,7 +805,11 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 
 DELIMITER ;
 
- -- delete a user
+ -- Test procedure calls
+
+CALL sp_remove_player(3, 1);
+
+ -- delete a user (12)
 
 DELIMITER $$
 CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
@@ -778,3 +822,7 @@ CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
 	END $$
 
 DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_delete_user(2);
