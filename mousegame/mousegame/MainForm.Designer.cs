@@ -31,7 +31,7 @@
             titleLabel = new Label();
             newGameBtn = new Button();
             joinGameBtn = new Button();
-            label1 = new Label();
+            adminToolsLabel = new Label();
             manageGamesBtn = new Button();
             manageUsersBtn = new Button();
             signOutBtn = new Button();
@@ -69,15 +69,15 @@
             joinGameBtn.UseVisualStyleBackColor = true;
             joinGameBtn.Click += joinGameBtn_Click;
             // 
-            // label1
+            // adminToolsLabel
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 21F);
-            label1.Location = new Point(432, 285);
-            label1.Name = "label1";
-            label1.Size = new Size(169, 38);
-            label1.TabIndex = 8;
-            label1.Text = "Admin Tools";
+            adminToolsLabel.AutoSize = true;
+            adminToolsLabel.Font = new Font("Segoe UI", 21F);
+            adminToolsLabel.Location = new Point(432, 285);
+            adminToolsLabel.Name = "adminToolsLabel";
+            adminToolsLabel.Size = new Size(169, 38);
+            adminToolsLabel.TabIndex = 8;
+            adminToolsLabel.Text = "Admin Tools";
             // 
             // manageGamesBtn
             // 
@@ -145,12 +145,13 @@
             Controls.Add(signOutBtn);
             Controls.Add(manageUsersBtn);
             Controls.Add(manageGamesBtn);
-            Controls.Add(label1);
+            Controls.Add(adminToolsLabel);
             Controls.Add(joinGameBtn);
             Controls.Add(newGameBtn);
             Controls.Add(titleLabel);
             Name = "MainForm";
             Text = "MainForm";
+            Load += MainForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -160,7 +161,7 @@
         private Label titleLabel;
         private Button newGameBtn;
         private Button joinGameBtn;
-        private Label label1;
+        private Label adminToolsLabel;
         private Button manageGamesBtn;
         private Button manageUsersBtn;
         private Button signOutBtn;

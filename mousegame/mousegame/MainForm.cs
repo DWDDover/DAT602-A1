@@ -22,10 +22,14 @@ namespace mousegame
             if (_loginResult.Admin == 1)
             {
                 manageGamesBtn.Visible = true;
+                manageUsersBtn.Visible = true;
+                adminToolsLabel.Visible = true;
             }
             else
             {
                 manageGamesBtn.Visible = false;
+                manageUsersBtn.Visible = false;
+                adminToolsLabel.Visible = false;
             }
             int userId = _loginResult.UserId ?? 0;
         }

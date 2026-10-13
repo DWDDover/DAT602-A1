@@ -254,13 +254,13 @@ BEGIN
     WHERE username = p_username;
     
 	IF acc_locked = 1 THEN
-		SELECT 'locked' AS status;
+		SELECT 'locked' AS status, NULL AS user_id, NULL AS `admin`;
 	ELSEIF EXISTS ( 
 					SELECT * 
 					FROM `user`
 					WHERE p_username = username AND `password` = p_password
 				) THEN
-		SELECT 'success' AS status;
+		SELECT 'success' AS status, user_id, `admin` FROM `user` WHERE username = p_username;
         UPDATE `user`
         SET login_attempts = 0,
 			logged_in = TRUE
@@ -274,9 +274,9 @@ BEGIN
         SET login_attempts = login_attempts + 1, 
 			`locked` = IF((login_attempts + 1) > 4, 1, 0)
         WHERE p_username = username;
-		SELECT 'failed' AS status;
+		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
 	ELSE
-		SELECT 'failed' AS status;
+		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
 	END IF;
 
 END $$
@@ -826,3 +826,5 @@ DELIMITER ;
  -- Test procedure calls
 
 CALL sp_delete_user(2);
+
+select * from user;
