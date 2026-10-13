@@ -38,7 +38,6 @@ BEGIN
         game_id INT NOT NULL,
         tile_id INT NOT NULL,
         score INT NOT NULL,
-        next_tile INT,
         PRIMARY KEY (user_id, game_id)
 	);
     
@@ -94,9 +93,7 @@ BEGIN
         ADD CONSTRAINT fk_game_mouse 
         FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE,
         ADD CONSTRAINT fk_tile_mouse 
-        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE,
-        ADD CONSTRAINT fk_next_tile_mouse 
-        FOREIGN KEY (next_tile) REFERENCES tile(tile_id) ON DELETE CASCADE;
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	ALTER TABLE game
 		ADD CONSTRAINT fk_user_game 
@@ -140,12 +137,12 @@ BEGIN
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0);
             
-	INSERT INTO mouse(user_id, game_id, tile_id, score, next_tile)
+	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
-			(1, 1, 7, 200, 8),
-            (2, 1, 25, 100, 26),
-            (3, 1, 17, 0, NULL),
-            (4, 1, 34, 600, 56);
+			(1, 1, 7, 200),
+            (2, 1, 25, 100),
+            (3, 1, 17, 0),
+            (4, 1, 34, 600);
             
 	INSERT INTO game(game_id, user_id, `name`)
 		VALUES
@@ -465,7 +462,7 @@ SELECT * FROM mousetrap;
 
 -- activate trap
 
--- need a function here to check if a tile is adjacent to a mouse and also empty
+-- need a function here to check if a tile is adjacent to a mouse
 -- will be used when moving also
 
 DELIMITER $$
@@ -487,7 +484,8 @@ BEGIN
                     ON t2.tile_id = mouse_tile
                     WHERE 
 						((t2.row = t.row + 1 ) OR (t2.row = t.row -1 ) OR (t2.row = t.row )) AND
-						((t2.col = t.col + 1 ) OR (t2.col = t.col -1 )  OR (t2.col = t.col ) )
+						((t2.col = t.col + 1 ) OR (t2.col = t.col -1 )  OR (t2.col = t.col ) ) AND
+                        (t.game_id = p_game_id)
 					)
 		THEN RETURN TRUE;
         
@@ -495,10 +493,23 @@ BEGIN
         RETURN FALSE;
         
         END IF;
-    
-	RETURN available;
 		
 END $$
+
+DELIMITER ;
+
+-- Second function, thjis checks occupancy of a tile for movement and placing a trap
+
+DELIMITER $$
+
+CREATE FUNCTION f_tile_occupied(p_tile_id INT) RETURNS BOOL
+    DETERMINISTIC
+BEGIN
+    RETURN EXISTS (
+        SELECT * FROM mouse
+        WHERE tile_id = p_tile_id
+    );
+END
 
 DELIMITER ;
 
@@ -508,10 +519,13 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 	BEGIN
         
 	DECLARE available BOOL;
+    DECLARE adjacent BOOL;
     
-    SET available = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    SET available = f_tile_occupied(p_tile_id);
     
-    IF available = TRUE
+    
+    IF adjacent = TRUE AND available = FALSE
     THEN 
 		UPDATE mousetrap
         SET tile_id = p_tile_id, activated = 1
@@ -540,7 +554,74 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 
 	BEGIN
 
-	
+	DECLARE available BOOL;
+    DECLARE adjacent BOOL;
+    
+    SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    SET available = f_tile_occupied(p_tile_id);
+    
+    
+    IF adjacent = TRUE AND available = FALSE
+    THEN 
+    
+		UPDATE mouse
+		SET tile_id = p_tile_id
+		WHERE user_id = p_user_id AND game_id = p_game_id;
+		
+        IF EXISTS (
+				SELECT *
+				FROM cheese
+				WHERE tile_id = p_tile_id
+            )
+            THEN
+				UPDATE mouse
+                SET score = score + ( 
+										SELECT `value`
+                                        FROM cheese
+                                        WHERE tile_id = p_tile_id
+									);
+				DELETE FROM cheese
+                WHERE tile_id = p_tile_id;
+		
+        END IF;
+        
+        IF EXISTS (
+				SELECT *
+				FROM mousetrap
+				WHERE tile_id = p_tile_id AND activated = 0
+            )
+            THEN
+				INSERT INTO inventory(user_id, game_id, mousetrap_id)
+                VALUES (p_user_id, p_game_id, (
+												SELECT mousetrap_id
+												FROM mousetrap
+                                                WHERE tile_id = p_tile_id
+                                                ));
+				UPDATE mousetrap
+                SET tile_id = NULL
+                WHERE tile_id = p_tile_id;
+		END IF;
+        
+        IF EXISTS (
+				SELECT *
+				FROM mousetrap
+				WHERE tile_id = p_tile_id AND activated = 1
+            )
+            THEN
+				UPDATE mouse
+                SET tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE game_id = p_game_id AND
+                                col = 1 AND `row` = 1
+                                )
+				WHERE user_id = p_user_id AND game_id = p_game_id;
+				DELETE FROM mousetrap
+                WHERE tile_id = p_tile_id;
+			
+			END IF;
+        
+	END IF;
 
 	END $$
 
