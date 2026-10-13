@@ -24,7 +24,7 @@ BEGIN
     
 	CREATE TABLE `user`(
 	   user_id INT PRIMARY KEY AUTO_INCREMENT,
-	   username VARCHAR(50) NOT NULL,
+	   username VARCHAR(50) UNIQUE NOT NULL,
 	   `password` varchar(50) NOT NULL,
 	   `locked` INT NOT NULL,
        logged_in BOOL DEFAULT FALSE,
@@ -509,7 +509,7 @@ BEGIN
         SELECT * FROM mouse
         WHERE tile_id = p_tile_id
     );
-END
+END $$
 
 DELIMITER ;
 
@@ -539,15 +539,8 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 
 DELIMITER ;
 
-SELECT tile_id FROM tile WHERE game_id = 1;
-
-select * from mouse;
-select * from inventory;
--- call sp_activate_trap(1, 1, 8, 1);
--- select * from mousetrap;
--- select f_tile_available(1, 1, 40);
-
 -- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
+-- also includes update data of a player (11) when adding score and moving location
 
 DELIMITER $$
 CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id INT)
@@ -627,3 +620,161 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 
 DELIMITER ;
 
+
+ -- Move an item (NPC effect) (8)
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
+
+	BEGIN
+        
+	DECLARE current_tile INT;
+    DECLARE new_tile INT;
+    
+    SET current_tile = (
+						SELECT tile_id
+                        FROM cat
+                        WHERE game_id = p_game_id
+                        );
+                        
+	SELECT t.tile_id INTO new_tile
+    FROM tile t
+    JOIN tile t2 ON current_tile = t2.tile_id
+    WHERE t.game_id = t2.game_id AND
+		ABS(t.`row` - t2.`row`) <= 1 AND
+        ABS(t.col - t2.col) <= 1 AND
+        t.tile_id <> t2.tile_id AND
+        t.tile_id <> (
+						SELECT tile_id
+                        FROM tile
+                        WHERE col = 1 AND `row` = 1 AND game_id = p_game_id
+                        )
+	ORDER BY RAND()
+    LIMIT 1;
+    
+    UPDATE cat
+    SET tile_id = new_tile
+    WHERE game_id = p_game_id;
+    
+	IF EXISTS (
+		SELECT *
+		FROM mouse
+		WHERE tile_id = new_tile
+	)
+	THEN
+		UPDATE mouse
+		SET tile_id = (
+						SELECT tile_id
+						FROM tile
+						WHERE game_id = p_game_id AND
+						col = 1 AND `row` = 1
+						)
+		WHERE user_id IN (
+							SELECT user_id
+                            FROM mouse
+                            WHERE tile_id = new_tile
+                            ) 
+		AND game_id IN (
+						SELECT game_id
+                        FROM mouse
+                        WHERE game_id = p_game_id
+                        );
+			
+	END IF;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Kill Running games (9)
+ 
+ DELIMITER $$
+CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
+
+	BEGIN
+        
+        START TRANSACTION;
+        
+        DELETE FROM game
+        WHERE game_id = p_game_id;
+        
+        DELETE FROM mousetrap
+		WHERE mousetrap_id IN (SELECT mousetrap_id FROM inventory WHERE game_id = p_game_id);
+        
+        COMMIT;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Add new players, this is adding players to a game (10)
+  -- for the admin adding users the same registration procedure
+ -- is used
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
+
+	BEGIN
+        
+        DECLARE start_tile INT;
+        
+        SELECT tile_id INTO start_tile
+        FROM tile
+        WHERE game_id = p_game_id AND
+			col = 1 AND `row` = 1;
+        
+        
+		INSERT INTO mouse(user_id, game_id, tile_id, score)
+        VALUES
+			(p_user_id, p_game_id, start_tile, 0);
+		
+	END $$
+
+DELIMITER ;
+
+ -- update data of a player (11)
+ -- this updates the username of a user
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
+
+	BEGIN
+        
+        UPDATE `user`
+        SET username = p_username
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- delete a player (12)
+ -- 2 procedures to remove a player from a game and delete users
+ 
+ -- remove player from game
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
+
+	BEGIN
+        
+        DELETE FROM mouse
+        WHERE user_id = p_user_id AND game_id = p_game_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- delete a user
+
+DELIMITER $$
+CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
+
+	BEGIN
+        
+        DELETE FROM `user`
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
