@@ -57,5 +57,20 @@ namespace mousegame
 
             return result;
         }
+        public string Register(string p_username, string p_password)
+        {
+            using (var command = new MySqlCommand("sp_registration", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@p_username", p_username);
+                command.Parameters.AddWithValue("@p_password", p_password);
+
+                mySqlConnection.Open();
+                var status = command.ExecuteScalar();
+                mySqlConnection.Close();
+
+                return Convert.ToString(status);
+            }
+        }
     }
 }

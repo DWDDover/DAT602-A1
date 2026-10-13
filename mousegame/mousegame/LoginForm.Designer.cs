@@ -98,6 +98,7 @@
             signupBtn.TabIndex = 6;
             signupBtn.Text = "Sign Up";
             signupBtn.UseVisualStyleBackColor = true;
+            signupBtn.Click += signupBtn_Click;
             // 
             // LoginForm
             // 

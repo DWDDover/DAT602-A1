@@ -27,5 +27,11 @@ namespace mousegame
                 MessageBox.Show(result.Status);
             }
         }
+
+        private void signupBtn_Click(object sender, EventArgs e)
+        {
+            var registrationForm = new RegistrationForm();
+            registrationForm.Show();
+        }
     }
 }
