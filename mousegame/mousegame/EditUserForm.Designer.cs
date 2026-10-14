@@ -52,6 +52,7 @@
             cancelBtn.TabIndex = 1;
             cancelBtn.Text = "Cancel";
             cancelBtn.UseVisualStyleBackColor = true;
+            cancelBtn.Click += cancelBtn_Click;
             // 
             // usernameLabel
             // 

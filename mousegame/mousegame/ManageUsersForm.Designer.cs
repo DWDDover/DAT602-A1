@@ -72,6 +72,7 @@
             unlockBtn.TabIndex = 3;
             unlockBtn.Text = "Unlock";
             unlockBtn.UseVisualStyleBackColor = true;
+            unlockBtn.Click += unlockBtn_Click;
             // 
             // addBtn
             // 
@@ -90,6 +91,7 @@
             deleteBtn.TabIndex = 5;
             deleteBtn.Text = "Delete";
             deleteBtn.UseVisualStyleBackColor = true;
+            deleteBtn.Click += deleteBtn_Click;
             // 
             // ManageUsersForm
             // 

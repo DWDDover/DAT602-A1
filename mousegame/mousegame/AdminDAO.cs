@@ -88,5 +88,27 @@ namespace mousegame
                 mySqlConnection.Close();
             }
         }
+        public void UnlockUser(int userId)
+        {
+            using (var command = new MySqlCommand("sp_unlock_user", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@p_user_id", userId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
+        public void DeleteUser(int userId)
+        {
+            using (var command = new MySqlCommand("sp_delete_user", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@p_user_id", userId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
     }
 }

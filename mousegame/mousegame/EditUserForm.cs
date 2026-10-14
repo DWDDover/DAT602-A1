@@ -28,5 +28,10 @@ namespace mousegame
             dao.UpdateUser(_user.UserId, usernameTextbox.Text);
             this.Close();
         }
+
+        private void cancelBtn_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }

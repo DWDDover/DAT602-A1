@@ -30,5 +30,19 @@ namespace mousegame
             EditUserForm editUserForm = new EditUserForm(user);
             editUserForm.Show();
         }
+
+        private void unlockBtn_Click(object sender, EventArgs e)
+        {
+            AdminDAO dao = new AdminDAO();
+            UserInfo user = (UserInfo)userGrid.CurrentRow.DataBoundItem;
+            dao.UnlockUser(user.UserId);
+        }
+
+        private void deleteBtn_Click(object sender, EventArgs e)
+        {
+            AdminDAO dao = new AdminDAO();
+            UserInfo user = (UserInfo)userGrid.CurrentRow.DataBoundItem;
+            dao.DeleteUser(user.UserId);
+        }
     }
 }
