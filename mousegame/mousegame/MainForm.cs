@@ -46,5 +46,11 @@ namespace mousegame
             var joinGameForm = new JoinGameForm();
             joinGameForm.Show();
         }
+
+        private void newGameBtn_Click(object sender, EventArgs e)
+        {
+            NewGameForm newGameForm = new NewGameForm(_loginResult.UserId ?? 0);
+            newGameForm.Show();
+        }
     }
 }

@@ -31,17 +31,14 @@ namespace mousegame
             }
             else if (result == "duplicate_username")
             {
-                passwordTextbox.Clear();
                 MessageBox.Show("Username already exists");
             }
             else if (result == "username_short")
             {
-                passwordTextbox.Clear();
                 MessageBox.Show("Username must be at least 6 characters long");
             }
             else if (result == "password_short")
             {
-                passwordTextbox.Clear();
                 MessageBox.Show("Password must be at least 6 characters long");
             }
             else

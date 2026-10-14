@@ -10,19 +10,33 @@ namespace mousegame
 {
     public partial class GameForm : Form
     {
-        private int gameId;
+        private int _userId;
+        private int _gameId;
 
-        public GameForm(int gameId)
+        public GameForm(int userId, int gameId)
         {
-            this.gameId = gameId;
+            this._userId = userId;
+            this._gameId = gameId;
             InitializeComponent();
+            gameNameLabel.Text = GameName(gameId);
         }
 
         private void GameForm_Load(object sender, EventArgs e)
         {
             var dao = new GameDAO();
-            var tiles = dao.GetTilesForGame(gameId);
+            var tiles = dao.GetTilesForGame(_gameId);
             boardControl1.LoadBoard(tiles);
+        }
+
+        private string GameName(int gameId)
+        {
+            var dao = new GameDAO();
+            return dao.GetGameName(gameId);
+        }
+
+        private void inventoryLabel_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

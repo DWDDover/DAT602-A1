@@ -28,70 +28,71 @@
         /// </summary>
         private void InitializeComponent()
         {
-            gameList = new DataGridView();
             gameListLabel = new Label();
             joinBtn = new Button();
             cancelBtn = new Button();
-            ((System.ComponentModel.ISupportInitialize)gameList).BeginInit();
+            gameList = new ListBox();
             SuspendLayout();
-            // 
-            // gameList
-            // 
-            gameList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            gameList.Location = new Point(19, 48);
-            gameList.Name = "gameList";
-            gameList.RowHeadersWidth = 51;
-            gameList.Size = new Size(566, 332);
-            gameList.TabIndex = 0;
             // 
             // gameListLabel
             // 
             gameListLabel.AutoSize = true;
-            gameListLabel.Location = new Point(31, 13);
+            gameListLabel.Location = new Point(27, 10);
             gameListLabel.Name = "gameListLabel";
-            gameListLabel.Size = new Size(102, 20);
+            gameListLabel.Size = new Size(82, 15);
             gameListLabel.TabIndex = 1;
             gameListLabel.Text = "Active Games:";
             // 
             // joinBtn
             // 
-            joinBtn.Location = new Point(78, 396);
+            joinBtn.Location = new Point(68, 297);
+            joinBtn.Margin = new Padding(3, 2, 3, 2);
             joinBtn.Name = "joinBtn";
-            joinBtn.Size = new Size(178, 42);
+            joinBtn.Size = new Size(156, 32);
             joinBtn.TabIndex = 2;
             joinBtn.Text = "Join";
             joinBtn.UseVisualStyleBackColor = true;
             // 
             // cancelBtn
             // 
-            cancelBtn.Location = new Point(337, 396);
+            cancelBtn.Location = new Point(295, 297);
+            cancelBtn.Margin = new Padding(3, 2, 3, 2);
             cancelBtn.Name = "cancelBtn";
-            cancelBtn.Size = new Size(178, 42);
+            cancelBtn.Size = new Size(156, 32);
             cancelBtn.TabIndex = 3;
             cancelBtn.Text = "Cancel";
             cancelBtn.UseVisualStyleBackColor = true;
+            cancelBtn.Click += cancelBtn_Click;
+            // 
+            // gameList
+            // 
+            gameList.FormattingEnabled = true;
+            gameList.Location = new Point(27, 44);
+            gameList.Name = "gameList";
+            gameList.Size = new Size(465, 229);
+            gameList.TabIndex = 4;
             // 
             // JoinGameForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(605, 450);
+            ClientSize = new Size(529, 338);
+            Controls.Add(gameList);
             Controls.Add(cancelBtn);
             Controls.Add(joinBtn);
             Controls.Add(gameListLabel);
-            Controls.Add(gameList);
+            Margin = new Padding(3, 2, 3, 2);
             Name = "JoinGameForm";
             Text = "JoinGameForm";
-            ((System.ComponentModel.ISupportInitialize)gameList).EndInit();
+            Load += JoinGameForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private DataGridView gameList;
         private Label gameListLabel;
         private Button joinBtn;
         private Button cancelBtn;
+        private ListBox gameList;
     }
 }

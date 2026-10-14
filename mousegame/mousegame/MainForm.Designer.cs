@@ -56,6 +56,7 @@
             newGameBtn.TabIndex = 6;
             newGameBtn.Text = "New Game";
             newGameBtn.UseVisualStyleBackColor = true;
+            newGameBtn.Click += newGameBtn_Click;
             // 
             // joinGameBtn
             // 
