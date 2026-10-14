@@ -201,7 +201,8 @@ CREATE PROCEDURE sp_GetAllUsers()
 
 BEGIN
 
-    SELECT username, `locked` FROM `user`;
+    SELECT user_id, username, `locked`
+    FROM `user`;
     
 END $$
 
