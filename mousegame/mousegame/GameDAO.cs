@@ -39,5 +39,53 @@ namespace mousegame
 
             return tiles;
         }
+
+        public int newGame(int userId, string gameName)
+        {
+            int newGameId = -1;
+            using (var command = new MySqlCommand("sp_newgame", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_gamehost_id", userId);
+                command.Parameters.AddWithValue("p_gamename", gameName);
+                mySqlConnection.Open();
+                newGameId = Convert.ToInt32(command.ExecuteScalar());
+                mySqlConnection.Close();
+            }
+            return newGameId;
+        }
+
+        public string GetGameName(int gameId)
+        {
+            string gameName = null;
+            using (var command = new MySqlCommand("sp_gamename", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        gameName = (string)reader["game_name"];
+                    }
+                }
+                mySqlConnection.Close();
+            }
+            return gameName;
+        }
+        public void MovePlayer(int userId, int gameId, int tileId)
+        {
+            using (var command = new MySqlCommand("sp_moveplayer", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_user_id", userId);
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                command.Parameters.AddWithValue("p_tile_id", tileId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
     }
 }

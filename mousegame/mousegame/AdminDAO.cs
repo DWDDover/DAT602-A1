@@ -22,7 +22,7 @@ namespace mousegame
                 {
                     while (reader.Read())
                     {
-                        result.AppendLine("Game ID: " + reader["game_id"] + " Game name: " + reader["name"] + " Player Count: " + reader["player_count"]);
+                        result.AppendLine("Game ID: " + reader["game_id"] + "       Game name: " + reader["name"] + "      Player Count: " + reader["player_count"]);
                     }
                 }
 

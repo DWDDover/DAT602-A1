@@ -14,10 +14,24 @@ namespace mousegame
         private void loginBtn_Click(object sender, EventArgs e)
         {
             var dao = new LoginDAO();
-            string summary = dao.GetAllUsersSummary();
-            MessageBox.Show(summary, "Users");
-            var mainForm = new MainForm();
-            mainForm.Show();
+            LoginResult result = dao.Login(usernameTextbox.Text, passwordTextbox.Text);
+            if (result.Status == "success")
+            {
+                var mainForm = new MainForm(result);
+                mainForm.Show();
+                this.Hide();
+            }
+            else
+            {
+                passwordTextbox.Clear();
+                MessageBox.Show(result.Status);
+            }
+        }
+
+        private void signupBtn_Click(object sender, EventArgs e)
+        {
+            var registrationForm = new RegistrationForm();
+            registrationForm.Show();
         }
     }
 }

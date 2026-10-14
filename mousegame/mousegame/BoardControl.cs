@@ -10,14 +10,24 @@ namespace mousegame
 {
     public partial class BoardControl : UserControl
     {
+        private readonly int userId;
+        private readonly int gameId;
+
         public BoardControl()
         {
             InitializeComponent();
         }
 
+        public BoardControl(int userId, int gameId)
+        {
+            InitializeComponent();
+            this.userId = userId;
+            this.gameId = gameId;
+        }
+
         public void LoadBoard(List<TileInfo> tiles)
         {
-            int tileSize = 40;
+            int tileSize = 50;
 
             foreach (var tile in tiles)
             {
@@ -32,12 +42,18 @@ namespace mousegame
             }
         }
 
+        public void UpdateBoard()
+        {
+            // Logic to update the board based on game state
+        }
+
         private void Tile_Click(object sender, EventArgs e)
         {
             var clickedBox = (PictureBox)sender;
             int tileId = (int)clickedBox.Tag;
+            GameDAO dao = new GameDAO();
 
-            MessageBox.Show($"Clicked tile with tile_id {tileId}");
+            dao.MovePlayer(userId, gameId, tileId);
         }
     }
 }

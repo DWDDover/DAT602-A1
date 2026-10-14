@@ -23,10 +23,11 @@ BEGIN
     DROP TABLE IF EXISTS `inventory`;
     
 	CREATE TABLE `user`(
-	   user_id INT PRIMARY KEY,
-	   username VARCHAR(50) NOT NULL,
-	   `Password` varchar(50) NOT NULL,
+	   user_id INT PRIMARY KEY AUTO_INCREMENT,
+	   username VARCHAR(50) UNIQUE NOT NULL,
+	   `password` varchar(50) NOT NULL,
 	   `locked` INT NOT NULL,
+       logged_in BOOL DEFAULT FALSE,
 	   high_score INT,
 	   `admin` INT NOT NULL,
 	   login_attempts INT NOT NULL DEFAULT 0
@@ -37,12 +38,11 @@ BEGIN
         game_id INT NOT NULL,
         tile_id INT NOT NULL,
         score INT NOT NULL,
-        next_tile INT,
         PRIMARY KEY (user_id, game_id)
 	);
     
 	CREATE TABLE game(
-		game_id INT PRIMARY KEY,
+		game_id INT PRIMARY KEY AUTO_INCREMENT,
         user_id INT NOT NULL,
         `name` VARCHAR(50)
 	);
@@ -69,13 +69,13 @@ BEGIN
     );
     
     CREATE TABLE cheese(
-		cheese_id INT PRIMARY KEY,
+		cheese_id INT PRIMARY KEY AUTO_INCREMENT,
         tile_id INT NOT NULL,
         `value` INT NOT NULL
     );
      
 	CREATE TABLE mousetrap(
-		mousetrap_id INT PRIMARY KEY,
+		mousetrap_id INT PRIMARY KEY AUTO_INCREMENT,
         activated INT NOT NULL,
         tile_id INT
     );
@@ -88,49 +88,62 @@ BEGIN
     );
      
 	ALTER TABLE mouse
-		ADD CONSTRAINT fk_user_mouse FOREIGN KEY (user_id) REFERENCES `user`(user_id),
-        ADD CONSTRAINT fk_game_mouse FOREIGN KEY (game_id) REFERENCES game(game_id),
-        ADD CONSTRAINT fk_tile_mouse FOREIGN KEY (tile_id) REFERENCES tile(tile_id),
-        ADD CONSTRAINT fk_next_tile_mouse FOREIGN KEY (next_tile) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_user_mouse 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_mouse 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_tile_mouse 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	ALTER TABLE game
-		ADD CONSTRAINT fk_user_game FOREIGN KEY (user_id) REFERENCES `user`(user_id);
+		ADD CONSTRAINT fk_user_game 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE;
 
 	ALTER TABLE message
-		ADD CONSTRAINT fk_user_message FOREIGN KEY (user_id) REFERENCES `user`(user_id),
-        ADD CONSTRAINT fk_game_message FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_user_message 
+        FOREIGN KEY (user_id) REFERENCES `user`(user_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_message 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE tile
-		ADD CONSTRAINT fk_tile_game FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_tile_game 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE inventory
-		ADD CONSTRAINT fk_inventory_mouse FOREIGN KEY (user_id, game_id) REFERENCES mouse(user_id, game_id),
-        ADD CONSTRAINT fk_inventory_mousetrap FOREIGN KEY (mousetrap_id) REFERENCES mousetrap(mousetrap_id);
+		ADD CONSTRAINT fk_inventory_mouse 
+        FOREIGN KEY (user_id, game_id) REFERENCES mouse(user_id, game_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_inventory_mousetrap 
+        FOREIGN KEY (mousetrap_id) REFERENCES mousetrap(mousetrap_id) ON DELETE CASCADE;
         
 	ALTER TABLE cheese
-		ADD CONSTRAINT fk_tile_cheese FOREIGN KEY (tile_id) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_tile_cheese 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	ALTER TABLE cat
-		ADD CONSTRAINT fk_tile_cat FOREIGN KEY (tile_id) REFERENCES tile(tile_id),
-        ADD CONSTRAINT fk_game_cat FOREIGN KEY (game_id) REFERENCES game(game_id);
+		ADD CONSTRAINT fk_tile_cat 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE,
+        ADD CONSTRAINT fk_game_cat 
+        FOREIGN KEY (game_id) REFERENCES game(game_id) ON DELETE CASCADE;
         
 	ALTER TABLE mousetrap
-		ADD CONSTRAINT fk_tile_mousetrap FOREIGN KEY (tile_id) REFERENCES tile(tile_id);
+		ADD CONSTRAINT fk_tile_mousetrap 
+        FOREIGN KEY (tile_id) REFERENCES tile(tile_id) ON DELETE CASCADE;
         
 	INSERT INTO `user`(user_id, username, `password`, `locked`, high_score, `admin`, login_attempts)
 		VALUES
 			(1, 'michael', 'password123', 0, 400, 0, 2),
-            (2, 'admin', 'apple66', 0, 200, 1, 0),
+            (2, 'badmin', 'apple66', 0, 200, 1, 0),
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
-            (5, 'rachel433', 'mypassword2', 1, 100, 0, 0);
+            (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
+            (6, 'admin', 'Admin123', 0, 0, 1, 0);
             
-	INSERT INTO mouse(user_id, game_id, tile_id, score, next_tile)
+	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
-			(1, 1, 7, 200, 8),
-            (2, 1, 25, 100, 26),
-            (3, 1, 17, 0, NULL),
-            (4, 1, 34, 600, 56);
+			(1, 1, 7, 200),
+            (2, 1, 25, 100),
+            (3, 1, 17, 0),
+            (4, 1, 34, 600);
             
 	INSERT INTO game(game_id, user_id, `name`)
 		VALUES
@@ -224,3 +237,595 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+-- Milestone 2 Procedures
+
+-- Player Login including Lockout (1)
+
+DELIMITER $$
+CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), p_password VARCHAR(50))
+
+BEGIN
+	
+	DECLARE attempts INT;
+    DECLARE acc_locked INT;
+    SELECT `locked` AS acc_locked
+    INTO acc_locked
+    FROM `user`
+    WHERE username = p_username;
+    
+	IF acc_locked = 1 THEN
+		SELECT 'locked' AS status, NULL AS user_id, NULL AS `admin`;
+	ELSEIF EXISTS ( 
+					SELECT * 
+					FROM `user`
+					WHERE p_username = username AND `password` = p_password
+				) THEN
+		SELECT 'success' AS status, user_id, `admin` FROM `user` WHERE username = p_username;
+        UPDATE `user`
+        SET login_attempts = 0,
+			logged_in = TRUE
+        WHERE username = p_username;
+	ELSEIF EXISTS ( 
+					SELECT * 
+					FROM `user`
+					WHERE p_username = username AND `password` <> p_password
+				) THEN
+		UPDATE `user`
+        SET login_attempts = login_attempts + 1, 
+			`locked` = IF((login_attempts + 1) > 4, 1, 0)
+        WHERE p_username = username;
+		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+	ELSE
+		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+	END IF;
+
+END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_login('michael', 'password123');
+CALL sp_login('michael', 'wrongpassword');
+CALL sp_login('wrongusername', 'wrongpassword');
+CALL sp_login('rachel433', 'mypassword2');
+
+ -- Player registration (2)
+ 
+ DELIMITER $$
+ CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
+ 
+ BEGIN
+ 
+	IF EXISTS(
+				SELECT *
+                FROM `user`
+                WHERE username = p_username
+                ) THEN
+		SELECT 'duplicate_username' AS status;
+	
+    ELSEIF CHAR_LENGTH(p_username) < 6 THEN
+		SELECT 'username_short' AS status;
+        
+	ELSEIF CHAR_LENGTH(p_password) < 6 THEN
+		SELECT 'password_short' AS status;
+	
+	ELSE
+		INSERT INTO `user`(username, `password`, `locked`, high_score, `admin`, login_attempts)
+		VALUES
+			(p_username, p_password, 0, 0, 0, 0);
+		SELECT 'success' AS status;
+        
+	END IF;
+ 
+ END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_registration('testplayer', 'testpassword');
+
+-- Laying out tiles on a game board (3)
+
+-- includes 3 steps, making a new game, creating the tiles, and creating a mouse on
+-- the starting tile for the games host
+
+DELIMITER $$
+CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
+
+	BEGIN
+        
+		DECLARE new_game_id INT;
+        DECLARE start_tile_id INT;
+        
+        START TRANSACTION;
+        
+        INSERT INTO game(user_id, `name`)
+        VALUES
+			(p_gamehost_id, p_gamename);
+            
+		SET new_game_id = LAST_INSERT_ID();
+
+		SET @r = 1;
+		WHILE @r <= 12 DO
+			SET @c = 1;
+			WHILE @c <= 12 DO
+				INSERT INTO tile (game_id, `row`, `col`)
+				VALUES (new_game_id, @r, @c);
+				SET @c = @c + 1;
+			END WHILE;
+			SET @r = @r + 1;
+		END WHILE;
+        
+        SET start_tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE `row` = 1 AND `col` = 1 AND game_id = new_game_id);
+        
+        INSERT INTO mouse(user_id, game_id, tile_id, score)
+        VALUES
+			(p_gamehost_id, new_game_id, start_tile_id, 0);
+        
+	COMMIT;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_newgame(3, "testgame");
+
+ -- Placing an item on a tile (4)
+ -- Needs to either create a new item or place an existing item(mousetrap)
+
+-- Function to return a random free tile in a game
+
+DROP FUNCTION IF EXISTS f_free_tiles;
+
+DELIMITER $$
+CREATE FUNCTION f_free_tile(p_game_id INT) RETURNS INT
+	DETERMINISTIC
+
+BEGIN
+	DECLARE free_tile INT;
+	SELECT tile_id INTO free_tile
+			FROM tile
+			WHERE game_id = p_game_id
+				AND tile_id NOT IN (    
+										SELECT tile_id
+										FROM mouse
+										UNION SELECT tile_id
+										FROM cheese   
+										UNION SELECT tile_id
+										FROM cat
+										UNION SELECT tile_id
+										FROM mousetrap
+										WHERE tile_id IS NOT NULL
+									)
+			ORDER BY RAND()
+            LIMIT 1;
+            
+	RETURN free_tile;
+		
+END $$
+
+DELIMITER ;
+
+-- place cheese
+
+DROP PROCEDURE IF EXISTS sp_place_cheese;
+
+DELIMITER $$
+CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
+
+BEGIN
+	DECLARE random_tile INT;
+    
+    SET random_tile = f_free_tile(p_game_id);
+    
+	INSERT INTO cheese(tile_id, `value`)
+	VALUES
+		(random_tile, 100);
+        
+END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_place_cheese(1);
+
+-- place trap pickup
+
+DROP PROCEDURE IF EXISTS sp_place_trap;
+
+DELIMITER $$
+CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
+
+BEGIN
+	DECLARE random_tile INT;
+    
+    SET random_tile = f_free_tile(p_game_id);
+    
+	INSERT INTO mousetrap(activated, tile_id)
+	VALUES
+		(0, random_tile);
+        
+END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_place_trap(1);
+
+-- activate trap
+
+-- need a function here to check if a tile is adjacent to a mouse
+-- will be used when moving also
+
+DELIMITER $$
+CREATE FUNCTION f_tile_available(p_user_id INT, p_game_id INT, p_tile_id INT) RETURNS BOOL
+	DETERMINISTIC
+
+BEGIN
+	DECLARE mouse_tile INT;
+    
+	SELECT tile_id INTO mouse_tile
+			FROM mouse
+			WHERE user_id = p_user_id AND game_id = p_game_id;
+            
+            
+	IF p_tile_id IN ( 
+					SELECT t.tile_id
+                    FROM tile t
+                    join tile t2
+                    ON t2.tile_id = mouse_tile
+                    WHERE 
+						((t2.row = t.row + 1 ) OR (t2.row = t.row -1 ) OR (t2.row = t.row )) AND
+						((t2.col = t.col + 1 ) OR (t2.col = t.col -1 )  OR (t2.col = t.col ) ) AND
+                        (t.game_id = p_game_id)
+					)
+		THEN RETURN TRUE;
+        
+        ELSE
+        RETURN FALSE;
+        
+        END IF;
+		
+END $$
+
+DELIMITER ;
+
+-- Second function, thjis checks occupancy of a tile for movement and placing a trap
+
+DELIMITER $$
+
+CREATE FUNCTION f_tile_occupied(p_tile_id INT) RETURNS BOOL
+    DETERMINISTIC
+BEGIN
+    RETURN EXISTS (
+        SELECT * FROM mouse
+        WHERE tile_id = p_tile_id
+    );
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id INT, IN p_mousetrap_id INT)
+
+	BEGIN
+        
+	DECLARE available BOOL;
+    DECLARE adjacent BOOL;
+    
+    SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    SET available = f_tile_occupied(p_tile_id);
+    
+    
+    IF adjacent = TRUE AND available = FALSE
+    THEN 
+		UPDATE mousetrap
+        SET tile_id = p_tile_id, activated = 1
+        WHERE mousetrap_id = p_mousetrap_id;
+        
+        DELETE FROM inventory
+        WHERE mousetrap_id = p_mousetrap_id;
+	END IF;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+ 
+ CALL sp_activate_trap(1, 1, 8, 1);
+
+-- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
+-- also includes update data of a player (11) when adding score and moving location
+
+DELIMITER $$
+CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id INT)
+
+	BEGIN
+
+	DECLARE available BOOL;
+    DECLARE adjacent BOOL;
+    
+    SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    SET available = f_tile_occupied(p_tile_id);
+    
+    
+    IF adjacent = TRUE AND available = FALSE
+    THEN 
+    
+		UPDATE mouse
+		SET tile_id = p_tile_id
+		WHERE user_id = p_user_id AND game_id = p_game_id;
+		
+        IF EXISTS (
+				SELECT *
+				FROM cheese
+				WHERE tile_id = p_tile_id
+            )
+            THEN
+				UPDATE mouse
+                SET score = score + ( 
+										SELECT `value`
+                                        FROM cheese
+                                        WHERE tile_id = p_tile_id
+									);
+				DELETE FROM cheese
+                WHERE tile_id = p_tile_id;
+		
+        END IF;
+        
+        IF EXISTS (
+				SELECT *
+				FROM mousetrap
+				WHERE tile_id = p_tile_id AND activated = 0
+            )
+            THEN
+				INSERT INTO inventory(user_id, game_id, mousetrap_id)
+                VALUES (p_user_id, p_game_id, (
+												SELECT mousetrap_id
+												FROM mousetrap
+                                                WHERE tile_id = p_tile_id
+                                                ));
+				UPDATE mousetrap
+                SET tile_id = NULL
+                WHERE tile_id = p_tile_id;
+		END IF;
+        
+        IF EXISTS (
+				SELECT *
+				FROM mousetrap
+				WHERE tile_id = p_tile_id AND activated = 1
+            )
+            THEN
+				UPDATE mouse
+                SET tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE game_id = p_game_id AND
+                                col = 1 AND `row` = 1
+                                )
+				WHERE user_id = p_user_id AND game_id = p_game_id;
+				DELETE FROM mousetrap
+                WHERE tile_id = p_tile_id;
+			
+			END IF;
+        
+	END IF;
+
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+ 
+ CALL sp_move_player(1, 1, 6);
+
+ -- Move an item (NPC effect) (8)
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
+
+	BEGIN
+        
+	DECLARE current_tile INT;
+    DECLARE new_tile INT;
+    
+    SET current_tile = (
+						SELECT tile_id
+                        FROM cat
+                        WHERE game_id = p_game_id
+                        );
+                        
+	SELECT t.tile_id INTO new_tile
+    FROM tile t
+    JOIN tile t2 ON current_tile = t2.tile_id
+    WHERE t.game_id = t2.game_id AND
+		ABS(t.`row` - t2.`row`) <= 1 AND
+        ABS(t.col - t2.col) <= 1 AND
+        t.tile_id <> t2.tile_id AND
+        t.tile_id <> (
+						SELECT tile_id
+                        FROM tile
+                        WHERE col = 1 AND `row` = 1 AND game_id = p_game_id
+                        )
+	ORDER BY RAND()
+    LIMIT 1;
+    
+    UPDATE cat
+    SET tile_id = new_tile
+    WHERE game_id = p_game_id;
+    
+	IF EXISTS (
+		SELECT *
+		FROM mouse
+		WHERE tile_id = new_tile
+	)
+	THEN
+		UPDATE mouse
+		SET tile_id = (
+						SELECT tile_id
+						FROM tile
+						WHERE game_id = p_game_id AND
+						col = 1 AND `row` = 1
+						)
+		WHERE user_id IN (
+							SELECT user_id
+                            FROM mouse
+                            WHERE tile_id = new_tile
+                            ) 
+		AND game_id IN (
+						SELECT game_id
+                        FROM mouse
+                        WHERE game_id = p_game_id
+                        );
+			
+	END IF;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+ 
+ CALL sp_move_cat(1);
+
+ -- Kill Running games (9)
+ 
+ DELIMITER $$
+CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
+
+	BEGIN
+        
+        START TRANSACTION;
+        
+        DELETE FROM game
+        WHERE game_id = p_game_id;
+        
+        DELETE FROM mousetrap
+		WHERE mousetrap_id IN (SELECT mousetrap_id FROM inventory WHERE game_id = p_game_id);
+        
+        COMMIT;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_kill_game(2);
+
+ -- Add new players, this is adding players to a game (10)
+  -- for the admin adding users the same registration procedure
+ -- is used
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
+
+	BEGIN
+        
+        DECLARE start_tile INT;
+        
+        SELECT tile_id INTO start_tile
+        FROM tile
+        WHERE game_id = p_game_id AND
+			col = 1 AND `row` = 1;
+        
+        
+		INSERT INTO mouse(user_id, game_id, tile_id, score)
+        VALUES
+			(p_user_id, p_game_id, start_tile, 0);
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_add_player(5, 1);
+
+ -- update data of a player (11)
+ -- one procedure to update the username of a user
+-- and one to remove the locked status from a user
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
+
+	BEGIN
+        
+        UPDATE `user`
+        SET username = p_username
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+CALL sp_update_user(1, "michaelchanged");
+
+DELIMITER $$
+CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
+
+	BEGIN
+        
+        UPDATE `user`
+        SET `locked` = 0
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_unlock_user(5);
+
+ -- delete a player (12)
+ -- 2 procedures to remove a player from a game and delete users
+ 
+ -- remove player from game
+ 
+DELIMITER $$
+CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
+
+	BEGIN
+        
+        DELETE FROM mouse
+        WHERE user_id = p_user_id AND game_id = p_game_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_remove_player(3, 1);
+
+ -- delete a user (12)
+
+DELIMITER $$
+CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
+
+	BEGIN
+        
+        DELETE FROM `user`
+        WHERE user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+ -- Test procedure calls
+
+CALL sp_delete_user(2);
+
+select * from user;

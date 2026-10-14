@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             boardControl1 = new BoardControl();
-            prototypeLabel = new Label();
             inventoryListBox = new ListBox();
             inventoryLabel = new Label();
             playersLabel = new Label();
@@ -40,48 +39,42 @@
             sendMessageButton = new Button();
             scoreLabel = new Label();
             exitBtn = new Button();
+            label1 = new Label();
+            gameNameLabel = new Label();
             ((System.ComponentModel.ISupportInitialize)playersDataGrid).BeginInit();
             SuspendLayout();
             // 
             // boardControl1
             // 
-            boardControl1.Location = new Point(12, 27);
+            boardControl1.Location = new Point(12, 43);
             boardControl1.Name = "boardControl1";
-            boardControl1.Size = new Size(646, 585);
+            boardControl1.Size = new Size(733, 680);
             boardControl1.TabIndex = 0;
-            // 
-            // prototypeLabel
-            // 
-            prototypeLabel.AutoSize = true;
-            prototypeLabel.Location = new Point(12, 9);
-            prototypeLabel.Name = "prototypeLabel";
-            prototypeLabel.Size = new Size(627, 15);
-            prototypeLabel.TabIndex = 1;
-            prototypeLabel.Text = "This form uses the game DAO connection on load to retrieve the tiles in the tile table, clicking a tile will show its tile_id";
             // 
             // inventoryListBox
             // 
             inventoryListBox.FormattingEnabled = true;
-            inventoryListBox.Location = new Point(709, 43);
+            inventoryListBox.Location = new Point(751, 43);
             inventoryListBox.Name = "inventoryListBox";
-            inventoryListBox.Size = new Size(305, 79);
+            inventoryListBox.Size = new Size(263, 79);
             inventoryListBox.TabIndex = 2;
             // 
             // inventoryLabel
             // 
             inventoryLabel.AutoSize = true;
             inventoryLabel.Font = new Font("Segoe UI", 18F);
-            inventoryLabel.Location = new Point(709, 9);
+            inventoryLabel.Location = new Point(751, 9);
             inventoryLabel.Name = "inventoryLabel";
             inventoryLabel.Size = new Size(115, 32);
             inventoryLabel.TabIndex = 3;
             inventoryLabel.Text = "Inventory";
+            inventoryLabel.Click += inventoryLabel_Click;
             // 
             // playersLabel
             // 
             playersLabel.AutoSize = true;
             playersLabel.Font = new Font("Segoe UI", 18F);
-            playersLabel.Location = new Point(709, 134);
+            playersLabel.Location = new Point(751, 134);
             playersLabel.Name = "playersLabel";
             playersLabel.Size = new Size(88, 32);
             playersLabel.TabIndex = 4;
@@ -90,16 +83,16 @@
             // playersDataGrid
             // 
             playersDataGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            playersDataGrid.Location = new Point(709, 169);
+            playersDataGrid.Location = new Point(751, 169);
             playersDataGrid.Name = "playersDataGrid";
-            playersDataGrid.Size = new Size(305, 164);
+            playersDataGrid.Size = new Size(263, 164);
             playersDataGrid.TabIndex = 5;
             // 
             // chatLabel
             // 
             chatLabel.AutoSize = true;
             chatLabel.Font = new Font("Segoe UI", 18F);
-            chatLabel.Location = new Point(709, 348);
+            chatLabel.Location = new Point(751, 368);
             chatLabel.Name = "chatLabel";
             chatLabel.Size = new Size(63, 32);
             chatLabel.TabIndex = 6;
@@ -108,22 +101,22 @@
             // chatListBox
             // 
             chatListBox.FormattingEnabled = true;
-            chatListBox.Location = new Point(709, 383);
+            chatListBox.Location = new Point(751, 403);
             chatListBox.Name = "chatListBox";
-            chatListBox.Size = new Size(305, 154);
+            chatListBox.Size = new Size(263, 154);
             chatListBox.TabIndex = 7;
             // 
             // chatTextBox
             // 
-            chatTextBox.Location = new Point(709, 543);
+            chatTextBox.Location = new Point(751, 588);
             chatTextBox.Name = "chatTextBox";
-            chatTextBox.Size = new Size(305, 49);
+            chatTextBox.Size = new Size(263, 49);
             chatTextBox.TabIndex = 8;
             chatTextBox.Text = "";
             // 
             // sendMessageButton
             // 
-            sendMessageButton.Location = new Point(709, 598);
+            sendMessageButton.Location = new Point(751, 643);
             sendMessageButton.Name = "sendMessageButton";
             sendMessageButton.Size = new Size(75, 23);
             sendMessageButton.TabIndex = 9;
@@ -134,7 +127,7 @@
             // 
             scoreLabel.AutoSize = true;
             scoreLabel.Font = new Font("Segoe UI", 18F);
-            scoreLabel.Location = new Point(12, 624);
+            scoreLabel.Location = new Point(12, 726);
             scoreLabel.Name = "scoreLabel";
             scoreLabel.Size = new Size(124, 32);
             scoreLabel.TabIndex = 10;
@@ -142,18 +135,40 @@
             // 
             // exitBtn
             // 
-            exitBtn.Location = new Point(881, 633);
+            exitBtn.Location = new Point(881, 721);
             exitBtn.Name = "exitBtn";
             exitBtn.Size = new Size(133, 37);
             exitBtn.TabIndex = 11;
             exitBtn.Text = "Exit Game";
             exitBtn.UseVisualStyleBackColor = true;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 18F);
+            label1.Location = new Point(12, 9);
+            label1.Name = "label1";
+            label1.Size = new Size(81, 32);
+            label1.TabIndex = 12;
+            label1.Text = "Game:";
+            // 
+            // gameNameLabel
+            // 
+            gameNameLabel.AutoSize = true;
+            gameNameLabel.Font = new Font("Segoe UI", 18F);
+            gameNameLabel.Location = new Point(99, 9);
+            gameNameLabel.Name = "gameNameLabel";
+            gameNameLabel.Size = new Size(34, 32);
+            gameNameLabel.TabIndex = 13;
+            gameNameLabel.Text = "--";
+            // 
             // GameForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1041, 682);
+            ClientSize = new Size(1041, 770);
+            Controls.Add(gameNameLabel);
+            Controls.Add(label1);
             Controls.Add(exitBtn);
             Controls.Add(scoreLabel);
             Controls.Add(sendMessageButton);
@@ -164,7 +179,6 @@
             Controls.Add(playersLabel);
             Controls.Add(inventoryLabel);
             Controls.Add(inventoryListBox);
-            Controls.Add(prototypeLabel);
             Controls.Add(boardControl1);
             Name = "GameForm";
             Text = "Game Form";
@@ -188,5 +202,7 @@
         private Button sendMessageButton;
         private Label scoreLabel;
         private Button exitBtn;
+        private Label label1;
+        private Label gameNameLabel;
     }
 }

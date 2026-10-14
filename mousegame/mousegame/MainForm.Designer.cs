@@ -31,13 +31,11 @@
             titleLabel = new Label();
             newGameBtn = new Button();
             joinGameBtn = new Button();
-            label1 = new Label();
+            adminToolsLabel = new Label();
             manageGamesBtn = new Button();
             manageUsersBtn = new Button();
             signOutBtn = new Button();
             deleteAccountBtn = new Button();
-            prototypeLabel = new Label();
-            label2 = new Label();
             SuspendLayout();
             // 
             // titleLabel
@@ -58,6 +56,7 @@
             newGameBtn.TabIndex = 6;
             newGameBtn.Text = "New Game";
             newGameBtn.UseVisualStyleBackColor = true;
+            newGameBtn.Click += newGameBtn_Click;
             // 
             // joinGameBtn
             // 
@@ -69,15 +68,15 @@
             joinGameBtn.UseVisualStyleBackColor = true;
             joinGameBtn.Click += joinGameBtn_Click;
             // 
-            // label1
+            // adminToolsLabel
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 21F);
-            label1.Location = new Point(432, 285);
-            label1.Name = "label1";
-            label1.Size = new Size(169, 38);
-            label1.TabIndex = 8;
-            label1.Text = "Admin Tools";
+            adminToolsLabel.AutoSize = true;
+            adminToolsLabel.Font = new Font("Segoe UI", 21F);
+            adminToolsLabel.Location = new Point(432, 285);
+            adminToolsLabel.Name = "adminToolsLabel";
+            adminToolsLabel.Size = new Size(169, 38);
+            adminToolsLabel.TabIndex = 8;
+            adminToolsLabel.Text = "Admin Tools";
             // 
             // manageGamesBtn
             // 
@@ -116,41 +115,22 @@
             deleteAccountBtn.Text = "Delete Account";
             deleteAccountBtn.UseVisualStyleBackColor = true;
             // 
-            // prototypeLabel
-            // 
-            prototypeLabel.AutoSize = true;
-            prototypeLabel.Location = new Point(190, 364);
-            prototypeLabel.Name = "prototypeLabel";
-            prototypeLabel.Size = new Size(254, 15);
-            prototypeLabel.TabIndex = 13;
-            prototypeLabel.Text = "Click here to test the admin DAO connection >";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(218, 211);
-            label2.Name = "label2";
-            label2.Size = new Size(226, 15);
-            label2.TabIndex = 14;
-            label2.Text = "Click here to proceed to the game form >";
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1046, 583);
-            Controls.Add(label2);
-            Controls.Add(prototypeLabel);
             Controls.Add(deleteAccountBtn);
             Controls.Add(signOutBtn);
             Controls.Add(manageUsersBtn);
             Controls.Add(manageGamesBtn);
-            Controls.Add(label1);
+            Controls.Add(adminToolsLabel);
             Controls.Add(joinGameBtn);
             Controls.Add(newGameBtn);
             Controls.Add(titleLabel);
             Name = "MainForm";
             Text = "MainForm";
+            Load += MainForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -160,12 +140,10 @@
         private Label titleLabel;
         private Button newGameBtn;
         private Button joinGameBtn;
-        private Label label1;
+        private Label adminToolsLabel;
         private Button manageGamesBtn;
         private Button manageUsersBtn;
         private Button signOutBtn;
         private Button deleteAccountBtn;
-        private Label prototypeLabel;
-        private Label label2;
     }
 }

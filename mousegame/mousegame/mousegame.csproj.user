@@ -7,10 +7,19 @@
     <Compile Update="GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="JoinGameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="NewGameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="RegistrationForm.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

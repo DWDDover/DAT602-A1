@@ -35,7 +35,6 @@
             passwordTextbox = new TextBox();
             loginBtn = new Button();
             signupBtn = new Button();
-            prototypeLabel = new Label();
             SuspendLayout();
             // 
             // titleLabel
@@ -99,22 +98,13 @@
             signupBtn.TabIndex = 6;
             signupBtn.Text = "Sign Up";
             signupBtn.UseVisualStyleBackColor = true;
-            // 
-            // prototypeLabel
-            // 
-            prototypeLabel.AutoSize = true;
-            prototypeLabel.Location = new Point(12, 390);
-            prototypeLabel.Name = "prototypeLabel";
-            prototypeLabel.Size = new Size(398, 15);
-            prototypeLabel.TabIndex = 7;
-            prototypeLabel.Text = "Click here to test the login DAO connection and proceed to the main form";
+            signupBtn.Click += signupBtn_Click;
             // 
             // LoginForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(prototypeLabel);
             Controls.Add(signupBtn);
             Controls.Add(loginBtn);
             Controls.Add(passwordTextbox);
@@ -138,6 +128,5 @@
         private TextBox passwordTextbox;
         private Button loginBtn;
         private Button signupBtn;
-        private Label prototypeLabel;
     }
 }
