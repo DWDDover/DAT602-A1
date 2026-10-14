@@ -4,6 +4,9 @@
     <Compile Update="BoardControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="EditUserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -17,6 +20,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="ManageGamesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ManageUsersForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="NewGameForm.cs">

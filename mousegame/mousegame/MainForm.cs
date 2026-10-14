@@ -51,5 +51,11 @@ namespace mousegame
             NewGameForm newGameForm = new NewGameForm(_loginResult.UserId ?? 0);
             newGameForm.Show();
         }
+
+        private void manageUsersBtn_Click(object sender, EventArgs e)
+        {
+            ManageUsersForm manageUsersForm = new ManageUsersForm();
+            manageUsersForm.Show();
+        }
     }
 }

@@ -96,6 +96,7 @@
             manageUsersBtn.TabIndex = 10;
             manageUsersBtn.Text = "Manage Users";
             manageUsersBtn.UseVisualStyleBackColor = true;
+            manageUsersBtn.Click += manageUsersBtn_Click;
             // 
             // signOutBtn
             // 
