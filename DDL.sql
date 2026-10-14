@@ -63,7 +63,7 @@ BEGIN
     );
     
     CREATE TABLE cat(
-		cat_id INT PRIMARY KEY,
+		cat_id INT AUTO_INCREMENT PRIMARY KEY,
         tile_id INT NOT NULL,
         game_id INT NOT NULL
     );
@@ -136,7 +136,8 @@ BEGIN
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
-            (6, 'admin', 'Admin123', 0, 0, 1, 0);
+            (6, 'admin', 'Admin123', 0, 0, 1, 0),
+            (7, 'dd', 'dd', 0, 0, 1, 0);
             
 	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
@@ -196,11 +197,11 @@ CALL CreateTables();
 -- Procedure for testing the LoginDAO in the prototype
 
 DELIMITER $$
-CREATE PROCEDURE GetAllUsers()
+CREATE PROCEDURE sp_GetAllUsers()
 
 BEGIN
 
-    SELECT * FROM `user`;
+    SELECT username, `locked` FROM `user`;
     
 END $$
 
@@ -284,13 +285,6 @@ END $$
 
 DELIMITER ;
 
- -- Test procedure calls
-
-CALL sp_login('michael', 'password123');
-CALL sp_login('michael', 'wrongpassword');
-CALL sp_login('wrongusername', 'wrongpassword');
-CALL sp_login('rachel433', 'mypassword2');
-
  -- Player registration (2)
  
  DELIMITER $$
@@ -323,10 +317,6 @@ CALL sp_login('rachel433', 'mypassword2');
 
 DELIMITER ;
 
- -- Test procedure calls
-
-CALL sp_registration('testplayer', 'testpassword');
-
 -- Laying out tiles on a game board (3)
 
 -- includes 3 steps, making a new game, creating the tiles, and creating a mouse on
@@ -339,6 +329,7 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
         
 		DECLARE new_game_id INT;
         DECLARE start_tile_id INT;
+        DECLARE cat_tile_id INT;
         
         START TRANSACTION;
         
@@ -363,20 +354,29 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 								SELECT tile_id
                                 FROM tile
                                 WHERE `row` = 1 AND `col` = 1 AND game_id = new_game_id);
+                                
+		SET cat_tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE `row` = 6 AND `col` = 6 AND game_id = new_game_id);
         
         INSERT INTO mouse(user_id, game_id, tile_id, score)
         VALUES
 			(p_gamehost_id, new_game_id, start_tile_id, 0);
+            
+		INSERT INTO cat(tile_id, game_id)
+        VALUES
+			(cat_tile_id, new_game_id);
+            
+		CALL sp_place_cheese(new_game_id);
         
 	COMMIT;
+    
+    SELECT new_game_id;
 		
 	END $$
 
 DELIMITER ;
-
- -- Test procedure calls
-
-CALL sp_newgame(3, "testgame");
 
  -- Placing an item on a tile (4)
  -- Needs to either create a new item or place an existing item(mousetrap)
@@ -434,10 +434,6 @@ END $$
 
 DELIMITER ;
 
- -- Test procedure calls
-
-CALL sp_place_cheese(1);
-
 -- place trap pickup
 
 DROP PROCEDURE IF EXISTS sp_place_trap;
@@ -457,10 +453,6 @@ BEGIN
 END $$
 
 DELIMITER ;
-
- -- Test procedure calls
-
-CALL sp_place_trap(1);
 
 -- activate trap
 
@@ -540,10 +532,6 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 	END $$
 
 DELIMITER ;
-
- -- Test procedure calls
- 
- CALL sp_activate_trap(1, 1, 8, 1);
 
 -- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
 -- also includes update data of a player (11) when adding score and moving location
@@ -626,10 +614,6 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 
 DELIMITER ;
 
- -- Test procedure calls
- 
- CALL sp_move_player(1, 1, 6);
-
  -- Move an item (NPC effect) (8)
  
 DELIMITER $$
@@ -695,10 +679,6 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
 
 DELIMITER ;
 
- -- Test procedure calls
- 
- CALL sp_move_cat(1);
-
  -- Kill Running games (9)
  
  DELIMITER $$
@@ -719,10 +699,6 @@ CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 	END $$
 
 DELIMITER ;
-
- -- Test procedure calls
-
-CALL sp_kill_game(2);
 
  -- Add new players, this is adding players to a game (10)
   -- for the admin adding users the same registration procedure
@@ -749,10 +725,6 @@ CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 
 DELIMITER ;
 
- -- Test procedure calls
-
-CALL sp_add_player(5, 1);
-
  -- update data of a player (11)
  -- one procedure to update the username of a user
 -- and one to remove the locked status from a user
@@ -770,8 +742,6 @@ CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
 
 DELIMITER ;
 
-CALL sp_update_user(1, "michaelchanged");
-
 DELIMITER $$
 CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
 
@@ -784,10 +754,6 @@ CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
 	END $$
 
 DELIMITER ;
-
- -- Test procedure calls
-
-CALL sp_unlock_user(5);
 
  -- delete a player (12)
  -- 2 procedures to remove a player from a game and delete users
@@ -806,10 +772,6 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 
 DELIMITER ;
 
- -- Test procedure calls
-
-CALL sp_remove_player(3, 1);
-
  -- delete a user (12)
 
 DELIMITER $$
@@ -826,6 +788,75 @@ DELIMITER ;
 
  -- Test procedure calls
 
+CALL sp_login('michael', 'password123');
+CALL sp_login('michael', 'wrongpassword');
+CALL sp_login('wrongusername', 'wrongpassword');
+CALL sp_login('rachel433', 'mypassword2');
+
+CALL sp_registration('testplayer', 'testpassword');
+
+CALL sp_newgame(3, "testgame");
+
+CALL sp_place_cheese(1);
+
+CALL sp_place_trap(1);
+
+CALL sp_activate_trap(1, 1, 8, 1);
+
+CALL sp_move_player(1, 1, 6);
+
+CALL sp_move_cat(1);
+
+CALL sp_kill_game(2);
+
+CALL sp_add_player(5, 1);
+
+CALL sp_update_user(1, 'newname');
+
+CALL sp_unlock_user(5);
+
+CALL sp_remove_player(3, 1);
+
 CALL sp_delete_user(2);
 
-select * from user;
+ -- Other procedures required that are not part of the assessment set are below
+ 
+-- find the game name
+
+DELIMITER $$
+CREATE PROCEDURE sp_gamename(IN p_game_id INT)
+
+	BEGIN
+        
+        SELECT `name` AS game_name
+        FROM game
+        WHERE game_id = p_game_id;
+		
+	END $$
+
+DELIMITER ;
+
+-- game state for a given game, used to update the GUI board
+
+DELIMITER $$
+CREATE PROCEDURE sp_gamestate(IN p_game_id INT)
+
+	BEGIN
+        
+	SELECT tile_id, 'mouse' AS kind, user_id AS ref_id
+	FROM mouse WHERE game_id = p_game_id
+	UNION ALL
+	SELECT tile_id, 'cheese', cheese_id
+	FROM cheese JOIN tile USING (tile_id) WHERE game_id = p_game_id
+    UNION ALL
+	SELECT tile_id, 'cat', cat_id
+	FROM cat WHERE game_id = p_game_id
+    UNION ALL
+	SELECT tile_id, 'mousetrap', mousetrap_id
+	FROM mousetrap JOIN tile USING (tile_id) WHERE game_id = p_game_id AND tile_id IS NOT NULL;
+		
+	END $$
+
+DELIMITER ;
+
+CALL sp_gamestate(1);
