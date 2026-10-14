@@ -31,7 +31,8 @@
             gameListLabel = new Label();
             joinBtn = new Button();
             cancelBtn = new Button();
-            gameList = new ListBox();
+            gameGrid = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)gameGrid).BeginInit();
             SuspendLayout();
             // 
             // gameListLabel
@@ -52,6 +53,7 @@
             joinBtn.TabIndex = 2;
             joinBtn.Text = "Join";
             joinBtn.UseVisualStyleBackColor = true;
+            joinBtn.Click += joinBtn_Click;
             // 
             // cancelBtn
             // 
@@ -64,20 +66,20 @@
             cancelBtn.UseVisualStyleBackColor = true;
             cancelBtn.Click += cancelBtn_Click;
             // 
-            // gameList
+            // gameGrid
             // 
-            gameList.FormattingEnabled = true;
-            gameList.Location = new Point(27, 44);
-            gameList.Name = "gameList";
-            gameList.Size = new Size(465, 229);
-            gameList.TabIndex = 4;
+            gameGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            gameGrid.Location = new Point(27, 39);
+            gameGrid.Name = "gameGrid";
+            gameGrid.Size = new Size(468, 241);
+            gameGrid.TabIndex = 4;
             // 
             // JoinGameForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(529, 338);
-            Controls.Add(gameList);
+            Controls.Add(gameGrid);
             Controls.Add(cancelBtn);
             Controls.Add(joinBtn);
             Controls.Add(gameListLabel);
@@ -85,6 +87,7 @@
             Name = "JoinGameForm";
             Text = "JoinGameForm";
             Load += JoinGameForm_Load;
+            ((System.ComponentModel.ISupportInitialize)gameGrid).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -93,6 +96,6 @@
         private Label gameListLabel;
         private Button joinBtn;
         private Button cancelBtn;
-        private ListBox gameList;
+        private DataGridView gameGrid;
     }
 }

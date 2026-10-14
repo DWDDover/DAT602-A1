@@ -76,12 +76,36 @@ namespace mousegame
         }
         public void MovePlayer(int userId, int gameId, int tileId)
         {
-            using (var command = new MySqlCommand("sp_moveplayer", mySqlConnection))
+            using (var command = new MySqlCommand("sp_move_player", mySqlConnection))
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("p_user_id", userId);
                 command.Parameters.AddWithValue("p_game_id", gameId);
                 command.Parameters.AddWithValue("p_tile_id", tileId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
+        public void AddPlayer(int userId, int gameId)
+        {
+            using (var command = new MySqlCommand("sp_add_player", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_user_id", userId);
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
+        public void RemovePlayer(int userId, int gameId)
+        {
+            using (var command = new MySqlCommand("sp_remove_player", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_user_id", userId);
+                command.Parameters.AddWithValue("p_game_id", gameId);
                 mySqlConnection.Open();
                 command.ExecuteNonQuery();
                 mySqlConnection.Close();

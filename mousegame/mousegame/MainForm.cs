@@ -36,14 +36,13 @@ namespace mousegame
 
         private void manageGamesBtn_Click(object sender, EventArgs e)
         {
-            var dao = new AdminDAO();
-            string summary = dao.GetAllGames();
-            MessageBox.Show(summary, "Games");
+            ManageGamesForm manageGamesForm = new ManageGamesForm();
+            manageGamesForm.Show();
         }
 
         private void joinGameBtn_Click(object sender, EventArgs e)
         {
-            var joinGameForm = new JoinGameForm();
+            var joinGameForm = new JoinGameForm(_loginResult.UserId ?? 0);
             joinGameForm.Show();
         }
 

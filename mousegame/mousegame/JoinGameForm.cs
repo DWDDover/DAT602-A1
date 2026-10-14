@@ -10,20 +10,32 @@ namespace mousegame
 {
     public partial class JoinGameForm : Form
     {
-        public JoinGameForm()
+        private readonly int _userId;
+        public JoinGameForm(int userId)
         {
             InitializeComponent();
+            _userId = userId;
         }
 
         private void JoinGameForm_Load(object sender, EventArgs e)
         {
             AdminDAO dao = new AdminDAO();
-            string games = dao.GetAllGames();
-            gameList.DataSource = games.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            List<GameInfo> games = dao.GetAllGames();
+            gameGrid.DataSource = games;
         }
 
         private void cancelBtn_Click(object sender, EventArgs e)
         {
+            this.Close();
+        }
+
+        private void joinBtn_Click(object sender, EventArgs e)
+        {
+            int gameId = Convert.ToInt32(gameGrid.CurrentRow.Cells[0].Value);
+            GameForm gameForm = new GameForm(_userId, gameId);
+            gameForm.Show();
+            GameDAO dao = new GameDAO();
+            dao.AddPlayer(_userId, gameId);
             this.Close();
         }
     }

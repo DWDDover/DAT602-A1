@@ -182,6 +182,7 @@
             Controls.Add(boardControl1);
             Name = "GameForm";
             Text = "Game Form";
+            FormClosed += GameForm_FormClosed;
             Load += GameForm_Load;
             ((System.ComponentModel.ISupportInitialize)playersDataGrid).EndInit();
             ResumeLayout(false);

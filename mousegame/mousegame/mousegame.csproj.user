@@ -16,6 +16,9 @@
     <Compile Update="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="ManageGamesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="NewGameForm.cs">
       <SubType>Form</SubType>
     </Compile>

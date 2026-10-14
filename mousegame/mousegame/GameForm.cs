@@ -38,5 +38,11 @@ namespace mousegame
         {
 
         }
+
+        private void GameForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            GameDAO dao = new GameDAO();
+            dao.RemovePlayer(_userId, _gameId);
+        }
     }
 }
