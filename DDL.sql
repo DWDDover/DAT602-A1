@@ -63,7 +63,7 @@ BEGIN
     );
     
     CREATE TABLE cat(
-		cat_id INT PRIMARY KEY,
+		cat_id INT AUTO_INCREMENT PRIMARY KEY,
         tile_id INT NOT NULL,
         game_id INT NOT NULL
     );
@@ -136,7 +136,8 @@ BEGIN
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
-            (6, 'admin', 'Admin123', 0, 0, 1, 0);
+            (6, 'admin', 'Admin123', 0, 0, 1, 0),
+            (7, 'dd', 'dd', 0, 0, 1, 0);
             
 	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
@@ -196,11 +197,11 @@ CALL CreateTables();
 -- Procedure for testing the LoginDAO in the prototype
 
 DELIMITER $$
-CREATE PROCEDURE GetAllUsers()
+CREATE PROCEDURE sp_GetAllUsers()
 
 BEGIN
 
-    SELECT * FROM `user`;
+    SELECT username, `locked` FROM `user`;
     
 END $$
 
@@ -339,6 +340,7 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
         
 		DECLARE new_game_id INT;
         DECLARE start_tile_id INT;
+        DECLARE cat_tile_id INT;
         
         START TRANSACTION;
         
@@ -363,12 +365,25 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 								SELECT tile_id
                                 FROM tile
                                 WHERE `row` = 1 AND `col` = 1 AND game_id = new_game_id);
+                                
+		SET cat_tile_id = (
+								SELECT tile_id
+                                FROM tile
+                                WHERE `row` = 6 AND `col` = 6 AND game_id = new_game_id);
         
         INSERT INTO mouse(user_id, game_id, tile_id, score)
         VALUES
 			(p_gamehost_id, new_game_id, start_tile_id, 0);
+            
+		INSERT INTO cat(tile_id, game_id)
+        VALUES
+			(cat_tile_id, new_game_id);
+            
+		CALL sp_place_cheese(new_game_id);
         
 	COMMIT;
+    
+    SELECT new_game_id;
 		
 	END $$
 
@@ -828,4 +843,17 @@ DELIMITER ;
 
 CALL sp_delete_user(2);
 
-select * from user;
+ -- Other procedures required that are not part of the assessment set are below
+ 
+ DELIMITER $$
+CREATE PROCEDURE sp_gamename(IN p_game_id INT)
+
+	BEGIN
+        
+        SELECT `name` AS game_name
+        FROM game
+        WHERE game_id = p_game_id;
+		
+	END $$
+
+DELIMITER ;
