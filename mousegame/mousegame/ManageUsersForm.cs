@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Bcpg;
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using Org.BouncyCastle.Bcpg;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -43,6 +44,14 @@ namespace mousegame
             AdminDAO dao = new AdminDAO();
             UserInfo user = (UserInfo)userGrid.CurrentRow.DataBoundItem;
             dao.DeleteUser(user.UserId);
+            List<UserInfo> users = dao.GetAllUsers();
+            userGrid.DataSource = users;
+        }
+
+        private void addBtn_Click(object sender, EventArgs e)
+        {
+            RegistrationForm registrationForm = new RegistrationForm();
+            registrationForm.Show();
         }
     }
 }

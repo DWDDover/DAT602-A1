@@ -945,6 +945,8 @@ CREATE PROCEDURE sp_gamestate(IN p_game_id INT)
 
 DELIMITER ;
 
+-- player list for display
+
 DELIMITER $$
 CREATE PROCEDURE sp_players(IN p_game_id INT)
 
@@ -961,6 +963,8 @@ CREATE PROCEDURE sp_players(IN p_game_id INT)
 
 DELIMITER ;
 
+-- players inventory for display
+
 DELIMITER $$
 CREATE PROCEDURE sp_inventory(IN p_game_id INT, IN p_user_id INT)
 
@@ -974,5 +978,3 @@ CREATE PROCEDURE sp_inventory(IN p_game_id INT, IN p_user_id INT)
 	END $$
 
 DELIMITER ;
-
-CALL sp_inventory(1, 7);

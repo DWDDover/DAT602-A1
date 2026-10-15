@@ -82,6 +82,7 @@
             addBtn.TabIndex = 4;
             addBtn.Text = "Add";
             addBtn.UseVisualStyleBackColor = true;
+            addBtn.Click += addBtn_Click;
             // 
             // deleteBtn
             // 
