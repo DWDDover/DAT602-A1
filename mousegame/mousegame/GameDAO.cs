@@ -40,6 +40,56 @@ namespace mousegame
             return tiles;
         }
 
+        public void MoveCat(int gameId)
+        {
+            using (var command = new MySqlCommand("sp_move_cat", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
+
+        public void PlaceCheese(int gameId)
+        {
+            using (var command = new MySqlCommand("sp_place_cheese", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
+
+        public List<Item> GetGameState(int gameId)
+        {
+            var items = new List<Item>();
+            using (var command = new MySqlCommand("sp_gamestate", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var item = new Item
+                        {
+                            TileId = (int)reader["tile_id"],
+                            Kind = (string)reader["kind"],
+                            RefId = reader.GetInt32(reader.GetOrdinal("ref_id")) as int?
+                        };
+                        items.Add(item);
+                    }
+                }
+                mySqlConnection.Close();
+            }
+            return items;
+        }
+
         public int newGame(int userId, string gameName)
         {
             int newGameId = -1;

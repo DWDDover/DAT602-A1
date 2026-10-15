@@ -789,36 +789,114 @@ DELIMITER ;
 
  -- Test procedure calls
 
+-- a call for the result of the different failure and success types
 CALL sp_login('michael', 'password123');
 CALL sp_login('michael', 'wrongpassword');
 CALL sp_login('wrongusername', 'wrongpassword');
 CALL sp_login('rachel433', 'mypassword2');
 
+-- user list
+SELECT * FROM `user`;
+-- registration call
 CALL sp_registration('testplayer', 'testpassword');
+ -- updated user list
+SELECT * FROM `user`;
 
+-- game list
+SELECT * FROM game;
+-- new game call
 CALL sp_newgame(3, "testgame");
+-- updated game list
+SELECT * FROM game;
 
+-- cheese list
+SELECT * FROM cheese;
+-- place new cheese
 CALL sp_place_cheese(1);
+-- updated list
+SELECT * FROM cheese;
 
+-- list of traps
+SELECT * FROM mousetrap;
+-- new trap on board
 CALL sp_place_trap(1);
+-- updated trap list
+SELECT * FROM mousetrap;
 
+-- list of traps
+SELECT * FROM mousetrap;
+-- trap activated on board
 CALL sp_activate_trap(1, 1, 8, 1);
+-- updated trap list
+SELECT * FROM mousetrap;
 
-CALL sp_move_player(1, 1, 6);
+-- users location
+SELECT * FROM mouse 
+WHERE user_id = 1;
+-- call of move procedure
+CALL sp_move_player(1, 1, 7);
+-- users new loaction
+SELECT * FROM mouse 
+WHERE user_id = 1;
 
+-- cat location
+SELECT * FROM cat
+WHERE game_id = 1;
+-- move cat call
 CALL sp_move_cat(1);
+-- new loaction
+SELECT * FROM cat
+WHERE game_id = 1;
 
-CALL sp_kill_game(2);
+-- game list
+SELECT * FROM game;
+-- kill game
+CALL sp_kill_game(3);
+-- updated list
+SELECT * FROM game;
 
+-- make new game
+CALL sp_newgame(1, "test_add");
+-- see players
+SELECT * FROM mouse;
+-- add player to the game
 CALL sp_add_player(5, 1);
+-- updated list
+SELECT * FROM mouse;
 
+-- see player 1
+SELECT * FROM `user`
+WHERE user_id = 1;
+-- update username
 CALL sp_update_user(1, 'newname');
+-- see updated name
+SELECT * FROM `user`
+WHERE user_id = 1;
 
+-- see locked player
+SELECT * FROM `user`
+WHERE user_id = 5;
+-- unlock the user
 CALL sp_unlock_user(5);
+-- confirm unlocked
+SELECT * FROM `user`
+WHERE user_id = 5;
 
+-- see players(mice) in game
+SELECT * FROM mouse
+WHERE game_id = 1;
+-- remove the player
 CALL sp_remove_player(3, 1);
+-- see updated list
+SELECT * FROM mouse
+WHERE game_id = 1;
 
+-- user list
+SELECT * FROM user;
+-- delete user 2
 CALL sp_delete_user(2);
+-- updated list
+SELECT * FROM user;
 
  -- Other procedures required that are not part of the assessment set are below
  

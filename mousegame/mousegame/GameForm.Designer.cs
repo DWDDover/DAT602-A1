@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             boardControl1 = new BoardControl();
             inventoryListBox = new ListBox();
             inventoryLabel = new Label();
@@ -41,6 +42,9 @@
             exitBtn = new Button();
             label1 = new Label();
             gameNameLabel = new Label();
+            gameTick = new System.Windows.Forms.Timer(components);
+            moveCatBtn = new Button();
+            placeCheeseBtn = new Button();
             ((System.ComponentModel.ISupportInitialize)playersDataGrid).BeginInit();
             SuspendLayout();
             // 
@@ -162,11 +166,38 @@
             gameNameLabel.TabIndex = 13;
             gameNameLabel.Text = "--";
             // 
+            // gameTick
+            // 
+            gameTick.Interval = 5000;
+            gameTick.Tick += gameTick_Tick;
+            // 
+            // moveCatBtn
+            // 
+            moveCatBtn.Location = new Point(427, 14);
+            moveCatBtn.Name = "moveCatBtn";
+            moveCatBtn.Size = new Size(103, 23);
+            moveCatBtn.TabIndex = 14;
+            moveCatBtn.Text = "Move Cat";
+            moveCatBtn.UseVisualStyleBackColor = true;
+            moveCatBtn.Click += moveCatBtn_Click;
+            // 
+            // placeCheeseBtn
+            // 
+            placeCheeseBtn.Location = new Point(555, 14);
+            placeCheeseBtn.Name = "placeCheeseBtn";
+            placeCheeseBtn.Size = new Size(104, 23);
+            placeCheeseBtn.TabIndex = 15;
+            placeCheeseBtn.Text = "Place Cheese";
+            placeCheeseBtn.UseVisualStyleBackColor = true;
+            placeCheeseBtn.Click += placeCheeseBtn_Click;
+            // 
             // GameForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1041, 770);
+            Controls.Add(placeCheeseBtn);
+            Controls.Add(moveCatBtn);
             Controls.Add(gameNameLabel);
             Controls.Add(label1);
             Controls.Add(exitBtn);
@@ -205,5 +236,8 @@
         private Button exitBtn;
         private Label label1;
         private Label gameNameLabel;
+        private System.Windows.Forms.Timer gameTick;
+        private Button moveCatBtn;
+        private Button placeCheeseBtn;
     }
 }

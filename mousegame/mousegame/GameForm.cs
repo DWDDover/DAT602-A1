@@ -26,6 +26,16 @@ namespace mousegame
             var dao = new GameDAO();
             var tiles = dao.GetTilesForGame(_gameId);
             boardControl1.LoadBoard(tiles);
+            boardControl1.UpdateBoard();
+            UpdateForm();
+            gameTick.Start();
+        }
+
+        private void UpdateForm()
+        {
+            // get player list
+            //get player inventroy list
+            //get player score
         }
 
         private string GameName(int gameId)
@@ -41,8 +51,26 @@ namespace mousegame
 
         private void GameForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            gameTick.Stop();
             GameDAO dao = new GameDAO();
             dao.RemovePlayer(_userId, _gameId);
+        }
+
+        private void gameTick_Tick(object sender, EventArgs e)
+        {
+            boardControl1.UpdateBoard();
+        }
+
+        private void moveCatBtn_Click(object sender, EventArgs e)
+        {
+            GameDAO dao = new GameDAO();
+            dao.MoveCat(_gameId);
+        }
+
+        private void placeCheeseBtn_Click(object sender, EventArgs e)
+        {
+            GameDAO dao = new GameDAO();
+            dao.PlaceCheese(_gameId);
         }
     }
 }

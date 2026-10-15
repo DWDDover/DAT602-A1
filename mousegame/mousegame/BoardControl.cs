@@ -13,6 +13,15 @@ namespace mousegame
         private readonly int userId;
         private readonly int gameId;
 
+        private readonly Dictionary<int, PictureBox> tileBoxes = new Dictionary<int, PictureBox>();
+
+        private Image mouseImage = Properties.Resources.grey;
+        private Image catImage = Properties.Resources.cat;
+        private Image cheeseImage = Properties.Resources.cheese;
+
+        private Image trapImage = Properties.Resources.trap;
+        private Image trapActivatedImage = Properties.Resources.trapactivated;
+
         public BoardControl()
         {
             InitializeComponent();
@@ -27,6 +36,7 @@ namespace mousegame
 
         public void LoadBoard(List<TileInfo> tiles)
         {
+            tileBoxes.Clear();
             int tileSize = 50;
 
             foreach (var tile in tiles)
@@ -39,12 +49,33 @@ namespace mousegame
                 box.Click += Tile_Click;
 
                 this.Controls.Add(box);
+                tileBoxes[tile.TileId] = box;
             }
         }
 
         public void UpdateBoard()
         {
-            // Logic to update the board based on game state
+            GameDAO dao = new GameDAO();
+            var gameItems = dao.GetGameState(gameId);
+            // Clear existing images
+            foreach (var box in tileBoxes.Values)
+            {
+                box.Image = null;
+            }
+            foreach (var item in gameItems)
+            {
+                if (tileBoxes.ContainsKey(item.TileId))
+                {
+                    var box = tileBoxes[item.TileId];
+                    switch (item.Kind)
+                    {
+                        case "cheese": box.Image = cheeseImage; break;
+                        case "mousetrap": box.Image = trapImage; break;
+                        case "mouse": box.Image = mouseImage; break;
+                        case "cat": box.Image = catImage; break;
+                    }
+                }
+            }
         }
 
         private void Tile_Click(object sender, EventArgs e)
