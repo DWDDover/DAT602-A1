@@ -57,5 +57,10 @@ namespace mousegame
             ManageUsersForm manageUsersForm = new ManageUsersForm();
             manageUsersForm.Show();
         }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
+        }
     }
 }

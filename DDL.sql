@@ -186,6 +186,11 @@ BEGIN
 		VALUES
 			(1, 51, 100),
             (2, 73, 100);
+            
+	INSERT INTO inventory(user_id, game_id, mousetrap_id)
+		VALUES
+			(7, 1, 1),
+            (7, 1, 4);
 
 	SET FOREIGN_KEY_CHECKS=1;
      
@@ -567,7 +572,9 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 										SELECT `value`
                                         FROM cheese
                                         WHERE tile_id = p_tile_id
-									);
+									)
+				WHERE user_id = p_user_id AND
+                game_id = p_game_id;
 				DELETE FROM cheese
                 WHERE tile_id = p_tile_id;
 		
@@ -938,4 +945,34 @@ CREATE PROCEDURE sp_gamestate(IN p_game_id INT)
 
 DELIMITER ;
 
-CALL sp_gamestate(1);
+DELIMITER $$
+CREATE PROCEDURE sp_players(IN p_game_id INT)
+
+	BEGIN
+        
+		SELECT u.user_id, u.username, m.score
+        FROM `user` u
+        INNER JOIN mouse m
+        ON u.user_id = m.user_id
+        WHERE m.game_id = p_game_id
+        ORDER BY m.score DESC;
+		
+	END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_inventory(IN p_game_id INT, IN p_user_id INT)
+
+	BEGIN
+        
+		SELECT mousetrap_id, 'Mouse trap' AS item
+        FROM inventory
+        WHERE game_id = p_game_id
+        AND user_id = p_user_id;
+		
+	END $$
+
+DELIMITER ;
+
+CALL sp_inventory(1, 7);

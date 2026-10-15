@@ -10,8 +10,14 @@ namespace mousegame
 {
     public partial class BoardControl : UserControl
     {
-        private readonly int userId;
-        private readonly int gameId;
+        private int userId;
+        private int gameId;
+
+        public void SetGame(int userId, int gameId)
+        {
+            this.userId = userId;
+            this.gameId = gameId;
+        }
 
         private readonly Dictionary<int, PictureBox> tileBoxes = new Dictionary<int, PictureBox>();
 
@@ -85,6 +91,7 @@ namespace mousegame
             GameDAO dao = new GameDAO();
 
             dao.MovePlayer(userId, gameId, tileId);
+            UpdateBoard();
         }
     }
 }

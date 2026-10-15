@@ -64,6 +64,32 @@ namespace mousegame
             }
         }
 
+        public List<InventoryItem> GetInventory(int userId, int gameId)
+        {
+            var inventory = new List<InventoryItem>();
+            using (var command = new MySqlCommand("sp_inventory", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_user_id", userId);
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var item = new InventoryItem
+                        {
+                            ItemId = (int)reader["mousetrap_id"],
+                            ItemName = (string)reader["item"],
+                        };
+                        inventory.Add(item);
+                    }
+                }
+                mySqlConnection.Close();
+            }
+            return inventory;
+        }
+
         public List<Item> GetGameState(int gameId)
         {
             var items = new List<Item>();
@@ -124,6 +150,18 @@ namespace mousegame
             }
             return gameName;
         }
+
+        public void PlaceTrap(int gameId)
+        {
+            using (var command = new MySqlCommand("sp_place_trap", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                command.ExecuteNonQuery();
+                mySqlConnection.Close();
+            }
+        }
         public void MovePlayer(int userId, int gameId, int tileId)
         {
             using (var command = new MySqlCommand("sp_move_player", mySqlConnection))
@@ -137,6 +175,32 @@ namespace mousegame
                 mySqlConnection.Close();
             }
         }
+
+        public List<PlayerInfo> GetPlayers(int gameId)
+        {
+            var players = new List<PlayerInfo>();
+            using (var command = new MySqlCommand("sp_players", mySqlConnection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("p_game_id", gameId);
+                mySqlConnection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        players.Add(new PlayerInfo
+                        {
+                            UserId = Convert.ToInt32(reader["user_id"]),
+                            Username = reader["username"].ToString(),
+                            Score = Convert.ToInt32(reader["score"])
+                        });
+                    }
+                }
+                mySqlConnection.Close();
+            }
+            return players;
+        }
+
         public void AddPlayer(int userId, int gameId)
         {
             using (var command = new MySqlCommand("sp_add_player", mySqlConnection))

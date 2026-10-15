@@ -131,6 +131,7 @@
             Controls.Add(titleLabel);
             Name = "MainForm";
             Text = "MainForm";
+            FormClosed += MainForm_FormClosed;
             Load += MainForm_Load;
             ResumeLayout(false);
             PerformLayout();
