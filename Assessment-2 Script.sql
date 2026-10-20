@@ -775,6 +775,16 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
         
         DELETE FROM mouse
         WHERE user_id = p_user_id AND game_id = p_game_id;
+        
+        IF NOT EXISTS (
+						SELECT game_id
+                        FROM mouse
+                        WHERE game_id = p_game_id
+                        )
+		THEN
+			DELETE FROM game
+            WHERE game_id = p_game_id;
+		END IF;
 		
 	END $$
 
