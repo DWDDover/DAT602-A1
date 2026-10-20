@@ -87,5 +87,10 @@ namespace mousegame
             dao.PlaceTrap(_gameId);
             boardControl1.UpdateBoard();
         }
+
+        private void exitBtn_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }

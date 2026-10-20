@@ -137,6 +137,7 @@
             exitBtn.TabIndex = 11;
             exitBtn.Text = "Exit Game";
             exitBtn.UseVisualStyleBackColor = true;
+            exitBtn.Click += exitBtn_Click;
             // 
             // label1
             // 
@@ -160,7 +161,7 @@
             // 
             // gameTick
             // 
-            gameTick.Interval = 1000;
+            gameTick.Interval = 20;
             gameTick.Tick += gameTick_Tick;
             // 
             // moveCatBtn
@@ -208,6 +209,7 @@
             // 
             // inventoryGrid
             // 
+            inventoryGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             inventoryGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             inventoryGrid.Location = new Point(858, 59);
             inventoryGrid.Margin = new Padding(3, 4, 3, 4);
