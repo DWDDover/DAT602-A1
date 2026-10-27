@@ -24,8 +24,8 @@ BEGIN
     
 	CREATE TABLE `user`(
 	   user_id INT PRIMARY KEY AUTO_INCREMENT,
-	   username VARCHAR(50) UNIQUE NOT NULL,
-	   `password` varchar(50) NOT NULL,
+	   username VARCHAR(50) UNIQUE NOT NULL CHECK (CHAR_LENGTH(username) >= 6),
+	   `password` varchar(50) NOT NULL CHECK (CHAR_LENGTH(`password`) >= 6),
 	   `locked` INT NOT NULL,
        logged_in BOOL DEFAULT FALSE,
 	   high_score INT,
@@ -136,8 +136,8 @@ BEGIN
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
-            (6, 'admin', 'Admin123', 0, 0, 1, 0),
-            (7, 'dd', 'dd', 0, 0, 1, 0);
+            (6, 'admins', 'Admin123', 0, 0, 1, 0);
+--             (7, 'dd', 'dd', 0, 0, 1, 0);
             
 	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
@@ -298,25 +298,45 @@ DELIMITER ;
  
  BEGIN
 	
+    DECLARE v_msg TEXT;
+    
 	DECLARE EXIT HANDLER FOR SQLSTATE '23000'
 	BEGIN
-		SELECT 'Error: Duplicate username. Please choose a different username.' AS Message;
+		SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS Message;
         ROLLBACK;
 	END;
     
+    DECLARE EXIT HANDLER FOR 3819
+    BEGIN
+        -- 1. Extract the actual system message string
+        GET DIAGNOSTICS CONDITION 1 v_msg = MESSAGE_TEXT;
+        
+        -- 2. Inspect the message text to find which constraint failed
+        IF v_msg LIKE '%user_chk_1%' THEN
+            SELECT 'Validation Failed: Username must be 3 or more characters.' AS Message;
+            
+        ELSEIF v_msg LIKE '%user_chk_2%' THEN
+            SELECT 'Validation Failed: Password must be 8 or more characters.' AS Message;
+            
+        ELSE
+            -- Fallback for unexpected or unnamed check constraint failures
+            SELECT CONCAT('Validation Failed: ', v_msg) AS Message;
+        END IF;
+    END;
+    
     START TRANSACTION;
     
-	IF EXISTS(
-				SELECT *
-                FROM `user`
-                WHERE username = p_username
-                ) THEN
-		SELECT 'duplicate_username' AS status;
+-- 	IF EXISTS(
+-- 				SELECT *
+--                 FROM `user`
+--                 WHERE username = p_username
+--                 ) THEN
+-- 		SELECT 'duplicate_username' AS status;
 	
-    ELSEIF CHAR_LENGTH(p_username) < 6 THEN
-		SELECT 'username_short' AS status;
+--     IF CHAR_LENGTH(p_username) < 6 THEN
+-- 		SELECT 'username_short' AS status;
         
-	ELSEIF CHAR_LENGTH(p_password) < 6 THEN
+	IF CHAR_LENGTH(p_password) < 6 THEN
 		SELECT 'password_short' AS status;
 	
 	ELSE
