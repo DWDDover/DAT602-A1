@@ -300,9 +300,11 @@ DELIMITER ;
 	
 	DECLARE EXIT HANDLER FOR SQLSTATE '23000'
 	BEGIN
-		-- Handler actions when a duplicate username is detected
 		SELECT 'Error: Duplicate username. Please choose a different username.' AS Message;
+        ROLLBACK;
 	END;
+    
+    START TRANSACTION;
     
 	IF EXISTS(
 				SELECT *
@@ -324,6 +326,8 @@ DELIMITER ;
 		SELECT 'success' AS status;
         
 	END IF;
+ 
+ COMMIT;
  
  END $$
 
