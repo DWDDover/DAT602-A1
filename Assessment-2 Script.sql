@@ -297,7 +297,13 @@ DELIMITER ;
  CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
  
  BEGIN
- 
+	
+	DECLARE EXIT HANDLER FOR SQLSTATE '23000'
+	BEGIN
+		-- Handler actions when a duplicate username is detected
+		SELECT 'Error: Duplicate username. Please choose a different username.' AS Message;
+	END;
+    
 	IF EXISTS(
 				SELECT *
                 FROM `user`
@@ -716,6 +722,8 @@ DELIMITER $$
 CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 
 	BEGIN
+        
+        
         
         DECLARE start_tile INT;
         
