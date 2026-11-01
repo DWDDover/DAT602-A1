@@ -313,10 +313,10 @@ DELIMITER ;
         
         -- 2. Inspect the message text to find which constraint failed
         IF v_msg LIKE '%user_chk_1%' THEN
-            SELECT 'Validation Failed: Username must be 3 or more characters.' AS Message;
+            SELECT 'Validation Failed: Username must be 6 or more characters.' AS Message;
             
         ELSEIF v_msg LIKE '%user_chk_2%' THEN
-            SELECT 'Validation Failed: Password must be 8 or more characters.' AS Message;
+            SELECT 'Validation Failed: Password must be 6 or more characters.' AS Message;
             
         ELSE
             -- Fallback for unexpected or unnamed check constraint failures
@@ -458,13 +458,18 @@ DELIMITER $$
 CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
 
 BEGIN
+
 	DECLARE random_tile INT;
-    
+
+	START TRANSACTION;
+
     SET random_tile = f_free_tile(p_game_id);
     
 	INSERT INTO cheese(tile_id, `value`)
 	VALUES
 		(random_tile, 100);
+        
+	COMMIT;
         
 END $$
 
@@ -480,11 +485,15 @@ CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
 BEGIN
 	DECLARE random_tile INT;
     
+    START TRANSACTION;
+    
     SET random_tile = f_free_tile(p_game_id);
     
 	INSERT INTO mousetrap(activated, tile_id)
 	VALUES
 		(0, random_tile);
+        
+	COMMIT;
         
 END $$
 
@@ -746,10 +755,18 @@ DELIMITER $$
 CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 
 	BEGIN
+    
+		-- exit handler here, and wrap procedure in transaction.
         
-        
+	DECLARE EXIT HANDLER FOR 1062
+		BEGIN
+			ROLLBACK; 
+			SELECT 'Error: You are already in this game' AS message;
+		END;
         
         DECLARE start_tile INT;
+        
+        START TRANSACTION;
         
         SELECT tile_id INTO start_tile
         FROM tile
@@ -760,6 +777,8 @@ CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 		INSERT INTO mouse(user_id, game_id, tile_id, score)
         VALUES
 			(p_user_id, p_game_id, start_tile, 0);
+            
+		COMMIT;
 		
 	END $$
 
