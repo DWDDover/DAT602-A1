@@ -301,51 +301,34 @@ DELIMITER ;
     DECLARE v_msg TEXT;
     
 	DECLARE EXIT HANDLER FOR SQLSTATE '23000'
-	BEGIN
-		SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS Message;
-        ROLLBACK;
-	END;
+		BEGIN
+			SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS Message;
+			ROLLBACK;
+		END;
     
     DECLARE EXIT HANDLER FOR 3819
-    BEGIN
-        -- 1. Extract the actual system message string
-        GET DIAGNOSTICS CONDITION 1 v_msg = MESSAGE_TEXT;
-        
-        -- 2. Inspect the message text to find which constraint failed
-        IF v_msg LIKE '%user_chk_1%' THEN
-            SELECT 'Validation Failed: Username must be 6 or more characters.' AS Message;
-            
-        ELSEIF v_msg LIKE '%user_chk_2%' THEN
-            SELECT 'Validation Failed: Password must be 6 or more characters.' AS Message;
-            
-        ELSE
-            -- Fallback for unexpected or unnamed check constraint failures
-            SELECT CONCAT('Validation Failed: ', v_msg) AS Message;
-        END IF;
-    END;
+		BEGIN
+
+			GET DIAGNOSTICS CONDITION 1 v_msg = MESSAGE_TEXT;
+			
+			IF v_msg LIKE '%user_chk_1%' THEN
+				SELECT 'Validation Failed: Username must be 6 or more characters.' AS Message;
+				
+			ELSEIF v_msg LIKE '%user_chk_2%' THEN
+				SELECT 'Validation Failed: Password must be 6 or more characters.' AS Message;
+				
+			ELSE
+				-- Fallback for unexpected or unnamed check constraint failures
+				SELECT CONCAT('Validation Failed: ', v_msg) AS Message;
+			END IF;
+		END;
     
     START TRANSACTION;
     
--- 	IF EXISTS(
--- 				SELECT *
---                 FROM `user`
---                 WHERE username = p_username
---                 ) THEN
--- 		SELECT 'duplicate_username' AS status;
-	
---     IF CHAR_LENGTH(p_username) < 6 THEN
--- 		SELECT 'username_short' AS status;
-        
-	IF CHAR_LENGTH(p_password) < 6 THEN
-		SELECT 'password_short' AS status;
-	
-	ELSE
 		INSERT INTO `user`(username, `password`, `locked`, high_score, `admin`, login_attempts)
 		VALUES
 			(p_username, p_password, 0, 0, 0, 0);
-		SELECT 'success' AS status;
-        
-	END IF;
+		SELECT 'success' AS Message;
  
  COMMIT;
  
@@ -406,7 +389,7 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
             
 		CALL sp_place_cheese(new_game_id);
         
-	COMMIT;
+		COMMIT;
     
     SELECT new_game_id;
 		
@@ -560,6 +543,8 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 	DECLARE available BOOL;
     DECLARE adjacent BOOL;
     
+    START TRANSACTION;
+    
     SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
     SET available = f_tile_occupied(p_tile_id);
     
@@ -573,6 +558,8 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
         DELETE FROM inventory
         WHERE mousetrap_id = p_mousetrap_id;
 	END IF;
+    
+    COMMIT;
 		
 	END $$
 
@@ -671,6 +658,8 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
 	DECLARE current_tile INT;
     DECLARE new_tile INT;
     
+    START TRANSACTION;
+    
     SET current_tile = (
 						SELECT tile_id
                         FROM cat
@@ -721,6 +710,8 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
                         );
 			
 	END IF;
+    
+    COMMIT;
 		
 	END $$
 
@@ -732,6 +723,13 @@ DELIMITER ;
 CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 
 	BEGIN
+		
+        -- Handles not found for deletes
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				SELECT 'Game not found' AS Message;
+				ROLLBACK;
+			END;
         
         START TRANSACTION;
         
@@ -754,33 +752,30 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 
-	BEGIN
-    
-		-- exit handler here, and wrap procedure in transaction.
+BEGIN
+        
+	DECLARE start_tile INT;
         
 	DECLARE EXIT HANDLER FOR 1062
 		BEGIN
 			ROLLBACK; 
 			SELECT 'Error: You are already in this game' AS message;
 		END;
-        
-        DECLARE start_tile INT;
-        
-        START TRANSACTION;
-        
-        SELECT tile_id INTO start_tile
-        FROM tile
-        WHERE game_id = p_game_id AND
-			col = 1 AND `row` = 1;
-        
-        
-		INSERT INTO mouse(user_id, game_id, tile_id, score)
-        VALUES
-			(p_user_id, p_game_id, start_tile, 0);
-            
-		COMMIT;
 		
-	END $$
+	START TRANSACTION;
+	
+	SELECT tile_id INTO start_tile
+	FROM tile
+	WHERE game_id = p_game_id AND
+		col = 1 AND `row` = 1;
+	
+	INSERT INTO mouse(user_id, game_id, tile_id, score)
+	VALUES
+		(p_user_id, p_game_id, start_tile, 0);
+		
+	COMMIT;
+		
+END $$
 
 DELIMITER ;
 
@@ -792,10 +787,20 @@ DELIMITER $$
 CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
 
 	BEGIN
+    
+		DECLARE EXIT HANDLER FOR 1062
+			BEGIN
+				SELECT 'Error: That username already exists.' AS error_message;
+                ROLLBACK;
+			END;
+    
+		START TRANSACTION;
         
         UPDATE `user`
         SET username = p_username
         WHERE user_id = p_user_id;
+        
+        COMMIT;
 		
 	END $$
 
@@ -805,10 +810,14 @@ DELIMITER $$
 CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
 
 	BEGIN
+    
+		START TRANSACTION;
         
         UPDATE `user`
         SET `locked` = 0
         WHERE user_id = p_user_id;
+        
+        COMMIT;
 		
 	END $$
 
@@ -823,6 +832,8 @@ DELIMITER $$
 CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 
 	BEGIN
+    
+		START TRANSACTION;
         
         DELETE FROM mouse
         WHERE user_id = p_user_id AND game_id = p_game_id;
@@ -836,6 +847,8 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 			DELETE FROM game
             WHERE game_id = p_game_id;
 		END IF;
+        
+        COMMIT;
 		
 	END $$
 
