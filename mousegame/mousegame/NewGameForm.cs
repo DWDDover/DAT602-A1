@@ -11,10 +11,12 @@ namespace mousegame
     public partial class NewGameForm : Form
     {
         private readonly int _userId;
-        public NewGameForm(int userId)
+        private readonly int _admin;
+        public NewGameForm(int userId, int Admin)
         {
             InitializeComponent();
             _userId = userId;
+            _admin = Admin;
         }
 
         private void createBtn_Click(object sender, EventArgs e)
@@ -33,8 +35,9 @@ namespace mousegame
             }
             else
             {
-                GameForm gameForm = new GameForm(_userId, result.GameId);
+                GameForm gameForm = new GameForm(_userId, result.GameId, _admin);
                 gameForm.Show();
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message} with ID: {result.GameId}");
                 this.Hide();
             }
 

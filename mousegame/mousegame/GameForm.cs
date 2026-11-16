@@ -12,11 +12,13 @@ namespace mousegame
     {
         private int _userId;
         private int _gameId;
+        private int _admin;
 
-        public GameForm(int userId, int gameId)
+        public GameForm(int userId, int gameId, int Admin)
         {
             this._userId = userId;
             this._gameId = gameId;
+            this._admin = Admin;
             InitializeComponent();
             gameNameLabel.Text = GameName(gameId);
         }
@@ -24,6 +26,18 @@ namespace mousegame
         private void GameForm_Load(object sender, EventArgs e)
         {
             var dao = new GameDAO();
+            if (_admin == 1)
+            {
+                moveCatBtn.Visible = true;
+                placeCheeseBtn.Visible = true;
+                mousetrapBtn.Visible = true;
+            }
+            else
+            {
+                moveCatBtn.Visible = false;
+                placeCheeseBtn.Visible = false;
+                mousetrapBtn.Visible = false;
+            }
             var tiles = dao.GetTilesForGame(_gameId);
             boardControl1.SetGame(_userId, _gameId);
             boardControl1.LoadBoard(tiles);
@@ -70,21 +84,48 @@ namespace mousegame
         private void moveCatBtn_Click(object sender, EventArgs e)
         {
             GameDAO dao = new GameDAO();
-            dao.MoveCat(_gameId);
+            Result result = dao.MoveCat(_gameId);
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
+
             boardControl1.UpdateBoard();
         }
 
         private void placeCheeseBtn_Click(object sender, EventArgs e)
         {
             GameDAO dao = new GameDAO();
-            dao.PlaceCheese(_gameId);
+            Result result = dao.PlaceCheese(_gameId);
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
+
             boardControl1.UpdateBoard();
         }
 
         private void mousetrapBtn_Click(object sender, EventArgs e)
         {
             GameDAO dao = new GameDAO();
-            dao.PlaceTrap(_gameId);
+            Result result = dao.PlaceTrap(_gameId);
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
+
             boardControl1.UpdateBoard();
         }
 

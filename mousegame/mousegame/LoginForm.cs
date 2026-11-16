@@ -18,6 +18,7 @@ namespace mousegame
             if (result.Status == "success")
             {
                 var mainForm = new MainForm(result);
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message} with ID: {result.UserId}");
                 mainForm.Show();
                 this.Hide();
             }

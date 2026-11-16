@@ -283,7 +283,7 @@ BEGIN
     WHERE username = p_username FOR UPDATE;
     
 	IF acc_locked = 1 THEN
-		SELECT 'locked' AS status, 'Account is locked, contact and administrator' AS message, NULL AS user_id, NULL AS `admin`;
+		SELECT 'locked' AS status, 'Account is locked, contact an administrator' AS message, NULL AS user_id, NULL AS `admin`;
         ROLLBACK;
 	ELSEIF EXISTS ( 
 					SELECT * 
@@ -331,7 +331,7 @@ DELIMITER ;
     
 	DECLARE EXIT HANDLER FOR SQLSTATE '23000'
 		BEGIN
-			SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS Message;
+			SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS message;
 			ROLLBACK;
 		END;
         
@@ -352,16 +352,16 @@ DELIMITER ;
 			GET DIAGNOSTICS CONDITION 1 v_msg = MESSAGE_TEXT;
 			
 			IF v_msg LIKE '%user_chk_1%' THEN
-				SELECT 'Validation Failed: Username must be 6 or more characters.' AS Message;
+				SELECT 'Validation Failed: Username must be 6 or more characters.' AS message;
                 ROLLBACK;
 				
 			ELSEIF v_msg LIKE '%user_chk_2%' THEN
-				SELECT 'Validation Failed: Password must be 6 or more characters.' AS Message;
+				SELECT 'Validation Failed: Password must be 6 or more characters.' AS message;
                 ROLLBACK;
 				
 			ELSE
 				-- Fallback for unexpected or unnamed check constraint failures
-				SELECT CONCAT('Validation Failed: ', v_msg) AS Message;
+				SELECT CONCAT('Validation Failed: ', v_msg) AS message;
                 ROLLBACK;
 			END IF;
 		END;
@@ -371,7 +371,7 @@ DELIMITER ;
 		INSERT INTO `user`(username, `password`, `locked`, high_score, `admin`, login_attempts)
 		VALUES
 			(p_username, p_password, 0, 0, 0, 0);
-		SELECT 'success' AS Message;
+		SELECT 'success' AS message;
  
  COMMIT;
  

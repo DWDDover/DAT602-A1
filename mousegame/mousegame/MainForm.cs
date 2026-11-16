@@ -42,13 +42,13 @@ namespace mousegame
 
         private void joinGameBtn_Click(object sender, EventArgs e)
         {
-            var joinGameForm = new JoinGameForm(_loginResult.UserId ?? 0);
+            var joinGameForm = new JoinGameForm(_loginResult.UserId ?? 0, _loginResult.Admin ?? 0);
             joinGameForm.Show();
         }
 
         private void newGameBtn_Click(object sender, EventArgs e)
         {
-            NewGameForm newGameForm = new NewGameForm(_loginResult.UserId ?? 0);
+            NewGameForm newGameForm = new NewGameForm(_loginResult.UserId ?? 0, _loginResult.Admin ?? 0);
             newGameForm.Show();
         }
 

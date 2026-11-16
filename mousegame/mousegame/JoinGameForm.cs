@@ -11,10 +11,12 @@ namespace mousegame
     public partial class JoinGameForm : Form
     {
         private readonly int _userId;
-        public JoinGameForm(int userId)
+        private readonly int _admin;
+        public JoinGameForm(int userId, int Admin)
         {
             InitializeComponent();
             _userId = userId;
+            _admin = Admin;
         }
 
         private void JoinGameForm_Load(object sender, EventArgs e)
@@ -32,7 +34,7 @@ namespace mousegame
         private void joinBtn_Click(object sender, EventArgs e)
         {
             int gameId = Convert.ToInt32(gameGrid.CurrentRow.Cells[0].Value);
-            GameForm gameForm = new GameForm(_userId, gameId);
+            GameForm gameForm = new GameForm(_userId, gameId, _admin);
             gameForm.Show();
             GameDAO dao = new GameDAO();
             dao.AddPlayer(_userId, gameId);

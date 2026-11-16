@@ -90,7 +90,8 @@ namespace mousegame
             int tileId = (int)clickedBox.Tag;
             GameDAO dao = new GameDAO();
 
-            dao.MovePlayer(userId, gameId, tileId);
+            Result result = dao.MovePlayer(userId, gameId, tileId);
+            System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
             UpdateBoard();
         }
     }
