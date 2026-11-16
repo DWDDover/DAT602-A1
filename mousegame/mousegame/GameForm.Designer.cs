@@ -52,19 +52,19 @@
             // 
             // boardControl1
             // 
-            boardControl1.Location = new Point(14, 57);
-            boardControl1.Margin = new Padding(3, 5, 3, 5);
+            boardControl1.Location = new Point(12, 43);
+            boardControl1.Margin = new Padding(3, 4, 3, 4);
             boardControl1.Name = "boardControl1";
-            boardControl1.Size = new Size(838, 842);
+            boardControl1.Size = new Size(733, 671);
             boardControl1.TabIndex = 0;
             // 
             // inventoryLabel
             // 
             inventoryLabel.AutoSize = true;
             inventoryLabel.Font = new Font("Segoe UI", 18F);
-            inventoryLabel.Location = new Point(858, 12);
+            inventoryLabel.Location = new Point(751, 9);
             inventoryLabel.Name = "inventoryLabel";
-            inventoryLabel.Size = new Size(143, 41);
+            inventoryLabel.Size = new Size(115, 32);
             inventoryLabel.TabIndex = 3;
             inventoryLabel.Text = "Inventory";
             inventoryLabel.Click += inventoryLabel_Click;
@@ -73,9 +73,9 @@
             // 
             playersLabel.AutoSize = true;
             playersLabel.Font = new Font("Segoe UI", 18F);
-            playersLabel.Location = new Point(858, 179);
+            playersLabel.Location = new Point(751, 134);
             playersLabel.Name = "playersLabel";
-            playersLabel.Size = new Size(111, 41);
+            playersLabel.Size = new Size(88, 32);
             playersLabel.TabIndex = 4;
             playersLabel.Text = "Players";
             // 
@@ -83,57 +83,52 @@
             // 
             playersDataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             playersDataGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            playersDataGrid.Location = new Point(858, 225);
-            playersDataGrid.Margin = new Padding(3, 4, 3, 4);
+            playersDataGrid.Location = new Point(751, 169);
             playersDataGrid.Name = "playersDataGrid";
             playersDataGrid.RowHeadersWidth = 20;
-            playersDataGrid.Size = new Size(301, 219);
+            playersDataGrid.Size = new Size(263, 164);
             playersDataGrid.TabIndex = 5;
             // 
             // chatLabel
             // 
             chatLabel.AutoSize = true;
             chatLabel.Font = new Font("Segoe UI", 18F);
-            chatLabel.Location = new Point(858, 491);
+            chatLabel.Location = new Point(751, 368);
             chatLabel.Name = "chatLabel";
-            chatLabel.Size = new Size(79, 41);
+            chatLabel.Size = new Size(63, 32);
             chatLabel.TabIndex = 6;
             chatLabel.Text = "Chat";
             // 
             // chatListBox
             // 
             chatListBox.FormattingEnabled = true;
-            chatListBox.Location = new Point(858, 537);
-            chatListBox.Margin = new Padding(3, 4, 3, 4);
+            chatListBox.Location = new Point(751, 403);
             chatListBox.Name = "chatListBox";
-            chatListBox.Size = new Size(300, 204);
+            chatListBox.Size = new Size(263, 154);
             chatListBox.TabIndex = 7;
             // 
             // chatTextBox
             // 
-            chatTextBox.Location = new Point(858, 784);
-            chatTextBox.Margin = new Padding(3, 4, 3, 4);
+            chatTextBox.Location = new Point(751, 588);
             chatTextBox.Name = "chatTextBox";
-            chatTextBox.Size = new Size(300, 64);
+            chatTextBox.Size = new Size(263, 49);
             chatTextBox.TabIndex = 8;
             chatTextBox.Text = "";
             // 
             // sendMessageButton
             // 
-            sendMessageButton.Location = new Point(858, 857);
-            sendMessageButton.Margin = new Padding(3, 4, 3, 4);
+            sendMessageButton.Location = new Point(751, 643);
             sendMessageButton.Name = "sendMessageButton";
-            sendMessageButton.Size = new Size(86, 31);
+            sendMessageButton.Size = new Size(75, 23);
             sendMessageButton.TabIndex = 9;
             sendMessageButton.Text = "Send";
             sendMessageButton.UseVisualStyleBackColor = true;
             // 
             // exitBtn
             // 
-            exitBtn.Location = new Point(1006, 918);
-            exitBtn.Margin = new Padding(3, 4, 3, 4);
+            exitBtn.Location = new Point(881, 723);
             exitBtn.Name = "exitBtn";
-            exitBtn.Size = new Size(152, 49);
+            exitBtn.Size = new Size(133, 37);
             exitBtn.TabIndex = 11;
             exitBtn.Text = "Exit Game";
             exitBtn.UseVisualStyleBackColor = true;
@@ -143,9 +138,9 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 18F);
-            label1.Location = new Point(14, 12);
+            label1.Location = new Point(12, 9);
             label1.Name = "label1";
-            label1.Size = new Size(103, 41);
+            label1.Size = new Size(81, 32);
             label1.TabIndex = 12;
             label1.Text = "Game:";
             // 
@@ -153,9 +148,9 @@
             // 
             gameNameLabel.AutoSize = true;
             gameNameLabel.Font = new Font("Segoe UI", 18F);
-            gameNameLabel.Location = new Point(113, 12);
+            gameNameLabel.Location = new Point(99, 9);
             gameNameLabel.Name = "gameNameLabel";
-            gameNameLabel.Size = new Size(42, 41);
+            gameNameLabel.Size = new Size(34, 32);
             gameNameLabel.TabIndex = 13;
             gameNameLabel.Text = "--";
             // 
@@ -166,10 +161,9 @@
             // 
             // moveCatBtn
             // 
-            moveCatBtn.Location = new Point(488, 19);
-            moveCatBtn.Margin = new Padding(3, 4, 3, 4);
+            moveCatBtn.Location = new Point(427, 14);
             moveCatBtn.Name = "moveCatBtn";
-            moveCatBtn.Size = new Size(118, 31);
+            moveCatBtn.Size = new Size(103, 23);
             moveCatBtn.TabIndex = 14;
             moveCatBtn.Text = "Move Cat";
             moveCatBtn.UseVisualStyleBackColor = true;
@@ -177,10 +171,9 @@
             // 
             // placeCheeseBtn
             // 
-            placeCheeseBtn.Location = new Point(634, 19);
-            placeCheeseBtn.Margin = new Padding(3, 4, 3, 4);
+            placeCheeseBtn.Location = new Point(555, 14);
             placeCheeseBtn.Name = "placeCheeseBtn";
-            placeCheeseBtn.Size = new Size(119, 31);
+            placeCheeseBtn.Size = new Size(104, 23);
             placeCheeseBtn.TabIndex = 15;
             placeCheeseBtn.Text = "Place Cheese";
             placeCheeseBtn.UseVisualStyleBackColor = true;
@@ -190,18 +183,17 @@
             // 
             score.AutoSize = true;
             score.Font = new Font("Segoe UI", 18F);
-            score.Location = new Point(14, 915);
+            score.Location = new Point(12, 728);
             score.Name = "score";
-            score.Size = new Size(42, 41);
+            score.Size = new Size(34, 32);
             score.TabIndex = 16;
             score.Text = "--";
             // 
             // mousetrapBtn
             // 
-            mousetrapBtn.Location = new Point(310, 19);
-            mousetrapBtn.Margin = new Padding(3, 4, 3, 4);
+            mousetrapBtn.Location = new Point(271, 14);
             mousetrapBtn.Name = "mousetrapBtn";
-            mousetrapBtn.Size = new Size(157, 31);
+            mousetrapBtn.Size = new Size(137, 23);
             mousetrapBtn.TabIndex = 17;
             mousetrapBtn.Text = "Place mousetrap";
             mousetrapBtn.UseVisualStyleBackColor = true;
@@ -211,18 +203,17 @@
             // 
             inventoryGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             inventoryGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            inventoryGrid.Location = new Point(858, 59);
-            inventoryGrid.Margin = new Padding(3, 4, 3, 4);
+            inventoryGrid.Location = new Point(751, 44);
             inventoryGrid.Name = "inventoryGrid";
             inventoryGrid.RowHeadersWidth = 51;
-            inventoryGrid.Size = new Size(301, 116);
+            inventoryGrid.Size = new Size(263, 87);
             inventoryGrid.TabIndex = 18;
             // 
             // GameForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1190, 973);
+            ClientSize = new Size(1041, 786);
             Controls.Add(inventoryGrid);
             Controls.Add(mousetrapBtn);
             Controls.Add(score);
@@ -239,7 +230,6 @@
             Controls.Add(playersLabel);
             Controls.Add(inventoryLabel);
             Controls.Add(boardControl1);
-            Margin = new Padding(3, 4, 3, 4);
             Name = "GameForm";
             Text = "Game Form";
             FormClosed += GameForm_FormClosed;

@@ -1220,7 +1220,7 @@ SELECT * FROM mousetrap;
 SELECT * FROM mouse 
 WHERE user_id = 1;
 -- call of move procedure
-CALL sp_move_player(1, 1, 8);
+CALL sp_move_player(1, 1, 2);
 -- users new loaction
 SELECT * FROM mouse 
 WHERE user_id = 1;
@@ -1399,3 +1399,126 @@ CREATE PROCEDURE sp_inventory(IN p_game_id INT, IN p_user_id INT)
 	END $$
 
 DELIMITER ;
+
+-- GAME TICK EVENTS
+
+DROP EVENT IF EXISTS ev_move_cat;
+DROP EVENT IF EXISTS ev_spawn_cheese;
+
+DELIMITER $$
+
+-- Move the cat in every game every 2 seconds
+-- uses cursor to loop over exisiting games
+CREATE EVENT ev_move_cat
+ON SCHEDULE EVERY 2 SECOND
+STARTS CURRENT_TIMESTAMP + INTERVAL 2 SECOND
+ON COMPLETION PRESERVE
+ENABLE
+DO
+BEGIN
+    DECLARE v_game_id INT;
+    DECLARE v_done INT DEFAULT 0;
+
+    DECLARE game_cursor CURSOR FOR
+        SELECT game_id FROM game;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET v_done = 1;
+
+    OPEN game_cursor;
+
+    game_loop: LOOP
+        FETCH game_cursor INTO v_game_id;
+
+        IF v_done = 1 THEN
+            LEAVE game_loop;
+        END IF;
+
+        CALL sp_move_cat(v_game_id);
+
+    END LOOP;
+
+    CLOSE game_cursor;
+END $$
+
+
+-- Place a cheese in every game every 7 seconds
+-- uses cursor to loop over exisiting games
+
+DELIMITER $$
+
+CREATE EVENT ev_spawn_cheese
+ON SCHEDULE EVERY 7 SECOND
+STARTS CURRENT_TIMESTAMP + INTERVAL 7 SECOND
+ON COMPLETION PRESERVE
+ENABLE
+DO
+BEGIN
+    DECLARE v_game_id INT;
+    DECLARE v_done INT DEFAULT 0;
+
+    DECLARE game_cursor CURSOR FOR
+        SELECT game_id FROM game;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET v_done = 1;
+
+    OPEN game_cursor;
+
+    game_loop: LOOP
+        FETCH game_cursor INTO v_game_id;
+
+        IF v_done = 1 THEN
+            LEAVE game_loop;
+        END IF;
+
+        CALL sp_place_cheese(v_game_id);
+
+    END LOOP;
+
+    CLOSE game_cursor;
+END $$
+
+DELIMITER ;
+
+-- spawn a trap every 15 seconds
+-- uses cursor to loop over exisiting games
+
+DELIMITER $$
+CREATE EVENT ev_spawn_trap
+ON SCHEDULE EVERY 15 SECOND
+STARTS CURRENT_TIMESTAMP + INTERVAL 15 SECOND
+ON COMPLETION PRESERVE
+ENABLE
+DO
+BEGIN
+    DECLARE v_game_id INT;
+    DECLARE v_done INT DEFAULT 0;
+
+    DECLARE game_cursor CURSOR FOR
+        SELECT game_id FROM game;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET v_done = 1;
+
+    OPEN game_cursor;
+
+    game_loop: LOOP
+        FETCH game_cursor INTO v_game_id;
+
+        IF v_done = 1 THEN
+            LEAVE game_loop;
+        END IF;
+
+        CALL sp_place_trap(v_game_id);
+
+    END LOOP;
+
+    CLOSE game_cursor;
+END $$
+
+DELIMITER ;
+
+-- starting events
+
+SET GLOBAL event_scheduler = ON;
