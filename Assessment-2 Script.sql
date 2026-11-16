@@ -530,18 +530,18 @@ BEGIN
     FROM game 
     WHERE game_id = p_game_id FOR UPDATE;
 
-    SET random_tile = f_free_tile(p_game_id);
+    SET random_tile = f_free_tile(v_game_id);
     
     -- Checking that the free tile is not null meaning the entire board is full
     IF random_tile IS NULL
 		THEN ROLLBACK;
-        SELECT 'failed' AS status;
+        SELECT 'failed' AS status, 'no free tiles' AS message;
     ELSE
 		INSERT INTO cheese(tile_id, `value`)
 		VALUES
 			(random_tile, 100);
 		COMMIT;
-        SELECT 'success' AS status;
+        SELECT 'success' AS status, 'cheese placed' AS message;
     END IF;
         
 END $$
@@ -577,17 +577,17 @@ BEGIN
     FROM game 
     WHERE game_id = p_game_id FOR UPDATE;
 
-    SET random_tile = f_free_tile(p_game_id);
+    SET random_tile = f_free_tile(v_game_id);
     
     IF random_tile IS NULL
 		THEN ROLLBACK;
-        SELECT 'failed' AS status;
+        SELECT 'failed' AS status, 'no tiles available' AS message;
     ELSE
 		INSERT INTO mousetrap(activated, tile_id)
 		VALUES
 			(0, random_tile);
         COMMIT;
-        SELECT 'success' AS status;
+        SELECT 'success' AS status, 'trap placed' AS message;
 	END IF;
         
 END $$
@@ -692,14 +692,14 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 
         DELETE FROM inventory
         WHERE mousetrap_id = p_mousetrap_id;
+        
+		COMMIT;
+		SELECT 'success' AS status, 'trap activated' AS message;
 	ELSE
 		ROLLBACK;
         SELECT 'failed' AS status, 'illegal placement' AS message;
 	END IF;
     
-    COMMIT;
-    SELECT 'success' AS status, 'trap activated' AS message;
-		
 	END $$
 
 DELIMITER ;
@@ -1187,6 +1187,10 @@ SELECT * FROM cheese;
 CALL sp_place_cheese(1);
 -- updated list
 SELECT * FROM cheese;
+-- rollback test
+CALL sp_place_cheese(999);
+-- check that procedure rolled back
+SELECT * FROM cheese;
 
 -- PLACE TRAP
 
@@ -1235,8 +1239,8 @@ WHERE game_id = 1;
 -- testing cat player collision, placing cat in corner surrounded by mice
 UPDATE cat SET tile_id = 144 WHERE game_id = 1;
 UPDATE mouse SET tile_id = 131 WHERE user_id = 1;
-UPDATE mouse SET tile_id = 132 WHERE user_id = 4;
-UPDATE mouse SET tile_id = 143 WHERE user_id = 5;
+UPDATE mouse SET tile_id = 132 WHERE user_id = 2;
+UPDATE mouse SET tile_id = 143 WHERE user_id = 3;
 -- checking players scores and location
 SELECT * FROM mouse WHERE game_id = 1;
 -- moving mouse onto a player
