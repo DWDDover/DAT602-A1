@@ -136,8 +136,8 @@ BEGIN
             (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
-            (6, 'admins', 'Admin123', 0, 0, 1, 0);
---             (7, 'dd', 'dd', 0, 0, 1, 0);
+            (6, 'admins', 'Admin123', 0, 0, 1, 0),
+            (7, 'dddddd', 'dddddd', 0, 0, 1, 0);
             
 	INSERT INTO mouse(user_id, game_id, tile_id, score)
 		VALUES
@@ -530,7 +530,7 @@ BEGIN
     FROM game 
     WHERE game_id = p_game_id FOR UPDATE;
 
-    SET random_tile = f_free_tile(v_game_id);
+    SET random_tile = f_free_tile(p_game_id);
     
     -- Checking that the free tile is not null meaning the entire board is full
     IF random_tile IS NULL
@@ -1133,9 +1133,9 @@ DELIMITER ;
 
  -- Test procedure calls
  
- -- call create tables before each testing run to reset testing data
+ -- uncomment and call create tables before each testing run to reset testing data
  
- CALL CreateTables();
+ -- CALL CreateTables();
 
 -- a call for the result of the different failure and success types
 
