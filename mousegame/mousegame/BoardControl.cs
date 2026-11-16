@@ -21,7 +21,20 @@ namespace mousegame
 
         private readonly Dictionary<int, PictureBox> tileBoxes = new Dictionary<int, PictureBox>();
 
-        private Image mouseImage = Properties.Resources.grey;
+        private readonly Image[] mouseImages =
+        {
+            Properties.Resources.grey,
+            Properties.Resources.darkblue,
+            Properties.Resources.green,
+            Properties.Resources.lightblue,
+            Properties.Resources.lightgreen,
+            Properties.Resources.maroon,
+            Properties.Resources.orange,
+            Properties.Resources.pink,
+            Properties.Resources.purple,
+            Properties.Resources.yellow
+        };
+
         private Image catImage = Properties.Resources.cat;
         private Image cheeseImage = Properties.Resources.cheese;
 
@@ -77,11 +90,22 @@ namespace mousegame
                     {
                         case "cheese": box.Image = cheeseImage; break;
                         case "mousetrap": box.Image = trapImage; break;
-                        case "mouse": box.Image = mouseImage; break;
+                        case "mouse": box.Image = GetMouseImage(item.RefId); break;
                         case "cat": box.Image = catImage; break;
                     }
                 }
             }
+        }
+
+        private Image GetMouseImage(int? mouseUserId)
+        {
+            if (!mouseUserId.HasValue || mouseUserId.Value == userId)
+            {
+                return mouseImages[0];
+            }
+
+            int colourIndex = Math.Abs(mouseUserId.Value) % (mouseImages.Length - 1) + 1;
+            return mouseImages[colourIndex];
         }
 
         private void Tile_Click(object sender, EventArgs e)
