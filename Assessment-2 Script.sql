@@ -44,7 +44,7 @@ BEGIN
 	CREATE TABLE game(
 		game_id INT PRIMARY KEY AUTO_INCREMENT,
         user_id INT NOT NULL,
-        `name` VARCHAR(50)
+        `name` VARCHAR(50) UNIQUE
 	);
     
     CREATE TABLE tile(
@@ -245,9 +245,14 @@ END $$
 
 DELIMITER ;
 
--- Milestone 2 Procedures
+-- Milestone 3 Procedures
 
 -- Player Login including Lockout (1)
+-- for error handling the trnasaction commits even on failed statuses to 
+-- ensure the users failed login attempts increase
+-- rolblbacks are on failed logins that dont change anything
+-- in order to close the open transaction
+-- Exit handles for generic database errors and 
 
 DELIMITER $$
 CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), p_password VARCHAR(50))
@@ -256,13 +261,30 @@ BEGIN
 	
 	DECLARE attempts INT;
     DECLARE acc_locked INT;
-    SELECT `locked` AS acc_locked
+    
+    -- These are handlers for deadlock or lock timeout and will be in all procedures that 
+    -- use concurrency, as well as the generic handler
+	DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
+    
+    START TRANSACTION;
+    
+	SELECT `locked` AS acc_locked
     INTO acc_locked
     FROM `user`
-    WHERE username = p_username;
+    WHERE username = p_username FOR UPDATE;
     
 	IF acc_locked = 1 THEN
 		SELECT 'locked' AS status, NULL AS user_id, NULL AS `admin`;
+        ROLLBACK;
 	ELSEIF EXISTS ( 
 					SELECT * 
 					FROM `user`
@@ -273,6 +295,7 @@ BEGIN
         SET login_attempts = 0,
 			logged_in = TRUE
         WHERE username = p_username;
+        COMMIT;
 	ELSEIF EXISTS ( 
 					SELECT * 
 					FROM `user`
@@ -283,8 +306,10 @@ BEGIN
 			`locked` = IF((login_attempts + 1) > 4, 1, 0)
         WHERE p_username = username;
 		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+        COMMIT;
 	ELSE
 		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+        ROLLBACK;
 	END IF;
 
 END $$
@@ -292,6 +317,10 @@ END $$
 DELIMITER ;
 
  -- Player registration (2)
+ -- 23000 exit handler catches duplicate username as the column has a unique contraint
+ -- generic lockout handlers are present again, as well as handlers for the two new constraints
+ -- I added to the create table statement that ensure both username and password
+ -- are >6 characters
  
  DELIMITER $$
  CREATE PROCEDURE sp_registration(IN p_username VARCHAR(50), p_password VARCHAR(50))
@@ -305,6 +334,17 @@ DELIMITER ;
 			SELECT 'Validation Failed: Duplicate username. Please choose a different username.' AS Message;
 			ROLLBACK;
 		END;
+        
+	DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
     
     DECLARE EXIT HANDLER FOR 3819
 		BEGIN
@@ -313,13 +353,16 @@ DELIMITER ;
 			
 			IF v_msg LIKE '%user_chk_1%' THEN
 				SELECT 'Validation Failed: Username must be 6 or more characters.' AS Message;
+                ROLLBACK;
 				
 			ELSEIF v_msg LIKE '%user_chk_2%' THEN
 				SELECT 'Validation Failed: Password must be 6 or more characters.' AS Message;
+                ROLLBACK;
 				
 			ELSE
 				-- Fallback for unexpected or unnamed check constraint failures
 				SELECT CONCAT('Validation Failed: ', v_msg) AS Message;
+                ROLLBACK;
 			END IF;
 		END;
     
@@ -340,6 +383,13 @@ DELIMITER ;
 
 -- includes 3 steps, making a new game, creating the tiles, and creating a mouse on
 -- the starting tile for the games host
+-- Generic handlers for lockout and database issues are present again
+-- added a unique constraint to the games name column and a handler for duplicate name
+-- The initial place cheese call for a new game was removed as this call started a new 
+-- transaction within the transaction. The games firsdt cheese will instead be placed by the 
+-- event to be added later
+-- Procedure changed again to return -1 as the new game id on a failed transaction
+-- this is so the GameDAO call still works when there is an error
 
 DELIMITER $$
 CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
@@ -349,6 +399,23 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 		DECLARE new_game_id INT;
         DECLARE start_tile_id INT;
         DECLARE cat_tile_id INT;
+        
+        DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT -1 AS new_game_id, 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT -1 AS new_game_id, 'error' AS status, 'Unexpected database error' AS message;
+		END;
+        
+        DECLARE EXIT HANDLER FOR SQLSTATE '23000'
+		BEGIN
+			SELECT -1 AS new_game_id, 'error' AS status, 'Game name already in use. Please use a different name.' AS message;
+			ROLLBACK;
+		END;
         
         START TRANSACTION;
         
@@ -386,12 +453,10 @@ CREATE PROCEDURE sp_newgame(IN p_gamehost_id INT, IN p_gamename VARCHAR(50))
 		INSERT INTO cat(tile_id, game_id)
         VALUES
 			(cat_tile_id, new_game_id);
-            
-		CALL sp_place_cheese(new_game_id);
         
 		COMMIT;
     
-    SELECT new_game_id;
+    SELECT new_game_id, 'success' AS status, 'Game created successfully' AS message;
 		
 	END $$
 
@@ -402,7 +467,7 @@ DELIMITER ;
 
 -- Function to return a random free tile in a game
 
-DROP FUNCTION IF EXISTS f_free_tiles;
+DROP FUNCTION IF EXISTS f_free_tile;
 
 DELIMITER $$
 CREATE FUNCTION f_free_tile(p_game_id INT) RETURNS INT
@@ -434,6 +499,9 @@ END $$
 DELIMITER ;
 
 -- place cheese
+-- Generic handlers for lock and database errors added
+-- Checks added for completely full board and rollback for that case
+-- lock select for update added
 
 DROP PROCEDURE IF EXISTS sp_place_cheese;
 
@@ -443,22 +511,45 @@ CREATE PROCEDURE sp_place_cheese(IN p_game_id INT)
 BEGIN
 
 	DECLARE random_tile INT;
+    DECLARE v_game_id INT;
+    
+    DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
 
 	START TRANSACTION;
+    -- locking game row to return an actually free tile
+    SELECT game_id INTO v_game_id
+    FROM game 
+    WHERE game_id = p_game_id FOR UPDATE;
 
     SET random_tile = f_free_tile(p_game_id);
     
-	INSERT INTO cheese(tile_id, `value`)
-	VALUES
-		(random_tile, 100);
-        
-	COMMIT;
+    -- Checking that the free tile is not null meaning the entire board is full
+    IF random_tile IS NULL
+		THEN ROLLBACK;
+        SELECT 'failed' AS status;
+    ELSE
+		INSERT INTO cheese(tile_id, `value`)
+		VALUES
+			(random_tile, 100);
+		COMMIT;
+        SELECT 'success' AS status;
+    END IF;
         
 END $$
 
 DELIMITER ;
 
 -- place trap pickup
+-- Same changes as the place cheese procedure
 
 DROP PROCEDURE IF EXISTS sp_place_trap;
 
@@ -467,16 +558,37 @@ CREATE PROCEDURE sp_place_trap(IN p_game_id INT)
 
 BEGIN
 	DECLARE random_tile INT;
+	DECLARE v_game_id INT;
     
-    START TRANSACTION;
-    
+    DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
+
+	START TRANSACTION;
+    -- locking game row to return an actually free tile
+    SELECT game_id INTO v_game_id
+    FROM game 
+    WHERE game_id = p_game_id FOR UPDATE;
+
     SET random_tile = f_free_tile(p_game_id);
     
-	INSERT INTO mousetrap(activated, tile_id)
-	VALUES
-		(0, random_tile);
-        
-	COMMIT;
+    IF random_tile IS NULL
+		THEN ROLLBACK;
+        SELECT 'failed' AS status;
+    ELSE
+		INSERT INTO mousetrap(activated, tile_id)
+		VALUES
+			(0, random_tile);
+        COMMIT;
+        SELECT 'success' AS status;
+	END IF;
         
 END $$
 
@@ -521,6 +633,9 @@ END $$
 DELIMITER ;
 
 -- Second function, thjis checks occupancy of a tile for movement and placing a trap
+-- as of milestone 3 a cat tile counts as occupied
+
+DROP FUNCTION IF EXISTS f_tile_occupied;
 
 DELIMITER $$
 
@@ -530,10 +645,19 @@ BEGIN
     RETURN EXISTS (
         SELECT * FROM mouse
         WHERE tile_id = p_tile_id
+    ) OR
+    EXISTS (
+        SELECT * FROM cat
+        WHERE tile_id = p_tile_id
     );
 END $$
 
 DELIMITER ;
+
+-- activate trap
+-- error handling added for locked or generic database errors
+-- error handling and rollback for illegal placement in the case of a changed board state
+-- since procedure was called
 
 DELIMITER $$
 CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id INT, IN p_mousetrap_id INT)
@@ -542,6 +666,17 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
         
 	DECLARE available BOOL;
     DECLARE adjacent BOOL;
+    
+    DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
     
     START TRANSACTION;
     
@@ -554,12 +689,16 @@ CREATE PROCEDURE sp_activate_trap(IN p_user_id INT, p_game_id INT, IN p_tile_id 
 		UPDATE mousetrap
         SET tile_id = p_tile_id, activated = 1
         WHERE mousetrap_id = p_mousetrap_id;
-        
+
         DELETE FROM inventory
         WHERE mousetrap_id = p_mousetrap_id;
+	ELSE
+		ROLLBACK;
+        SELECT 'failed' AS status, 'illegal placement' AS message;
 	END IF;
     
     COMMIT;
+    SELECT 'success' AS status, 'trap activated' AS message;
 		
 	END $$
 
@@ -567,6 +706,8 @@ DELIMITER ;
 
 -- player game play movement (includes game play scoring and aquiring an item) (5, 6, 7)
 -- also includes update data of a player (11) when adding score and moving location
+-- generic checks for lockouts added, as well as locking with for updates.
+-- check that game still exists added in the case of games being killed while moves are happening
 
 DELIMITER $$
 CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id INT)
@@ -575,8 +716,32 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 
 	DECLARE available BOOL;
     DECLARE adjacent BOOL;
+    DECLARE v_game_id INT;
     
-    SET adjacent = f_tile_available(p_user_id, p_game_id, p_tile_id);
+    DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
+    
+    START TRANSACTION;
+    
+	SELECT game_id INTO v_game_id
+    FROM game 
+    WHERE game_id = p_game_id FOR UPDATE;
+    
+    IF v_game_id IS NULL THEN
+		ROLLBACK;
+		SELECT 'failed' AS status, 'game no longer exists' AS message;
+        
+	ELSE
+    
+    SET adjacent = f_tile_available(p_user_id, v_game_id, p_tile_id);
     SET available = f_tile_occupied(p_tile_id);
     
     
@@ -621,6 +786,7 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
 				UPDATE mousetrap
                 SET tile_id = NULL
                 WHERE tile_id = p_tile_id;
+                
 		END IF;
         
         IF EXISTS (
@@ -641,14 +807,21 @@ CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id IN
                 WHERE tile_id = p_tile_id;
 			
 			END IF;
-        
+            COMMIT;
+            SELECT 'success' AS status, 'player moved successfully' AS message;
+	ELSE
+		ROLLBACK;
+		SELECT 'failed' AS status, 'illegal move' AS message;
 	END IF;
+    
+    END IF;
 
 	END $$
 
 DELIMITER ;
 
  -- Move an item (NPC effect) (8)
+ -- error handling added as well as new logic to remove points from players score upon collision
  
 DELIMITER $$
 CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
@@ -657,8 +830,31 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
         
 	DECLARE current_tile INT;
     DECLARE new_tile INT;
+    DECLARE v_game_id INT;
+    DECLARE v_victim INT;
+    
+    DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
+		END;
     
     START TRANSACTION;
+    
+	SELECT game_id INTO v_game_id
+    FROM game 
+    WHERE game_id = p_game_id FOR UPDATE;
+    
+    IF v_game_id IS NULL THEN
+		ROLLBACK;
+        SELECT 'failed' AS status, 'game no longer exists' AS message;
+        
+	ELSE
     
     SET current_tile = (
 						SELECT tile_id
@@ -685,11 +881,12 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
     SET tile_id = new_tile
     WHERE game_id = p_game_id;
     
-	IF EXISTS (
-		SELECT *
-		FROM mouse
-		WHERE tile_id = new_tile
-	)
+    -- New step to store victim ID for updates, check will now check if v_victim is NULL
+    SELECT user_id INTO v_victim 
+    FROM mouse WHERE game_id = p_game_id 
+    AND tile_id = new_tile;
+    
+	IF v_victim IS NOT NULL
 	THEN
 		UPDATE mouse
 		SET tile_id = (
@@ -697,21 +894,17 @@ CREATE PROCEDURE sp_move_cat(IN p_game_id INT)
 						FROM tile
 						WHERE game_id = p_game_id AND
 						col = 1 AND `row` = 1
-						)
-		WHERE user_id IN (
-							SELECT user_id
-                            FROM mouse
-                            WHERE tile_id = new_tile
-                            ) 
-		AND game_id IN (
-						SELECT game_id
-                        FROM mouse
-                        WHERE game_id = p_game_id
-                        );
+						),
+			score = score - 100
+		WHERE user_id = v_victim
+        AND game_id = v_game_id;
 			
 	END IF;
     
     COMMIT;
+    SELECT 'success' AS status, 'cat moved successfully' AS message;
+    
+    END IF;
 		
 	END $$
 
@@ -724,12 +917,18 @@ CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 
 	BEGIN
 		
-        -- Handles not found for deletes
+        -- Handles not found errors for deletion
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 			BEGIN
 				SELECT 'Game not found' AS Message;
 				ROLLBACK;
 			END;
+            
+		 DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
         
         START TRANSACTION;
         
@@ -740,6 +939,7 @@ CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 		WHERE mousetrap_id IN (SELECT mousetrap_id FROM inventory WHERE game_id = p_game_id);
         
         COMMIT;
+        SELECT 'success' AS status, 'game killed' AS message;
 		
 	END $$
 
@@ -759,7 +959,18 @@ BEGIN
 	DECLARE EXIT HANDLER FOR 1062
 		BEGIN
 			ROLLBACK; 
-			SELECT 'Error: You are already in this game' AS message;
+			SELECT 'failed' AS status, 'Error: You are already in this game' AS message;
+		END;
+        
+	 DECLARE EXIT HANDLER FOR 1213, 1205
+		BEGIN
+			ROLLBACK;
+			SELECT 'retry' AS status, 'Busy, please try again' AS message;
+		END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			SELECT 'error' AS status, 'Unexpected database error' AS message;
 		END;
 		
 	START TRANSACTION;
@@ -774,6 +985,7 @@ BEGIN
 		(p_user_id, p_game_id, start_tile, 0);
 		
 	COMMIT;
+    SELECT 'success' AS status, 'player added to game' AS message;
 		
 END $$
 
@@ -790,8 +1002,19 @@ CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
     
 		DECLARE EXIT HANDLER FOR 1062
 			BEGIN
-				SELECT 'Error: That username already exists.' AS error_message;
+				SELECT 'failed' AS status, 'Error: That username already exists.' AS message;
                 ROLLBACK;
+			END;
+            
+		 DECLARE EXIT HANDLER FOR 1213, 1205
+			BEGIN
+				ROLLBACK;
+				SELECT 'retry' AS status, 'Busy, please try again' AS message;
+			END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				ROLLBACK;
+				SELECT 'error' AS status, 'Unexpected database error' AS message;
 			END;
     
 		START TRANSACTION;
@@ -801,6 +1024,7 @@ CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
         WHERE user_id = p_user_id;
         
         COMMIT;
+        SELECT 'success' AS status, 'player updated' AS message;
 		
 	END $$
 
@@ -811,6 +1035,17 @@ CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
 
 	BEGIN
     
+		DECLARE EXIT HANDLER FOR 1213, 1205
+			BEGIN
+				ROLLBACK;
+				SELECT 'retry' AS status, 'Busy, please try again' AS message;
+			END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				ROLLBACK;
+				SELECT 'error' AS status, 'Unexpected database error' AS message;
+			END;
+    
 		START TRANSACTION;
         
         UPDATE `user`
@@ -818,6 +1053,7 @@ CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
         WHERE user_id = p_user_id;
         
         COMMIT;
+        SELECT 'success' AS status, 'player unlocked' AS message;
 		
 	END $$
 
@@ -832,6 +1068,17 @@ DELIMITER $$
 CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 
 	BEGIN
+    
+		DECLARE EXIT HANDLER FOR 1213, 1205
+			BEGIN
+				ROLLBACK;
+				SELECT 'retry' AS status, 'Busy, please try again' AS message;
+			END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				ROLLBACK;
+				SELECT 'error' AS status, 'Unexpected database error' AS message;
+			END;
     
 		START TRANSACTION;
         
@@ -849,6 +1096,7 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 		END IF;
         
         COMMIT;
+        SELECT 'success' AS status, 'player removed from game' AS message;
 		
 	END $$
 
@@ -860,28 +1108,63 @@ DELIMITER $$
 CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
 
 	BEGIN
+    
+		DECLARE EXIT HANDLER FOR 1213, 1205
+			BEGIN
+				ROLLBACK;
+				SELECT 'retry' AS status, 'Busy, please try again' AS message;
+			END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				ROLLBACK;
+				SELECT 'error' AS status, 'Unexpected database error' AS message;
+			END;
+    
+		START TRANSACTION;
         
         DELETE FROM `user`
         WHERE user_id = p_user_id;
+        COMMIT;
+        SELECT 'success' AS status, 'player deleted' AS message;
 		
 	END $$
 
 DELIMITER ;
 
  -- Test procedure calls
+ 
+ -- call create tables before each testing run to reset testing data
+ 
+ CALL CreateTables();
 
 -- a call for the result of the different failure and success types
+
+-- LOGIN
+
+-- commit on attempts reset
 CALL sp_login('michael', 'password123');
+-- commit on increased attempt count
 CALL sp_login('michael', 'wrongpassword');
+-- rollback on incorrect username
 CALL sp_login('wrongusername', 'wrongpassword');
+-- commit on successful login
 CALL sp_login('rachel433', 'mypassword2');
+
+-- REGISTER
 
 -- user list
 SELECT * FROM `user`;
--- registration call
+-- registration call, commits
 CALL sp_registration('testplayer', 'testpassword');
+-- duplicate username, rollbacks
+CALL sp_registration('testplayer', 'testpassword');
+-- password and username too short, rollbacks
+CALL sp_registration('te', 'testpassword');
+CALL sp_registration('testplayer5', 'te');
  -- updated user list
 SELECT * FROM `user`;
+
+-- NEW GAME
 
 -- game list
 SELECT * FROM game;
@@ -889,6 +1172,14 @@ SELECT * FROM game;
 CALL sp_newgame(3, "testgame");
 -- updated game list
 SELECT * FROM game;
+-- Tile count prior to failed new game transaction
+SELECT COUNT(*) FROM tile;
+-- Failed on duplciate game name and rollback
+CALL sp_newgame(3, "testgame");
+-- Tile count not increased on rollback
+SELECT COUNT(*) FROM tile;
+
+-- PLACE CHEESE
 
 -- cheese list
 SELECT * FROM cheese;
@@ -897,12 +1188,16 @@ CALL sp_place_cheese(1);
 -- updated list
 SELECT * FROM cheese;
 
+-- PLACE TRAP
+
 -- list of traps
 SELECT * FROM mousetrap;
 -- new trap on board
 CALL sp_place_trap(1);
 -- updated trap list
 SELECT * FROM mousetrap;
+
+-- ACTIVATE TRAP
 
 -- list of traps
 SELECT * FROM mousetrap;
@@ -911,14 +1206,23 @@ CALL sp_activate_trap(1, 1, 8, 1);
 -- updated trap list
 SELECT * FROM mousetrap;
 
+-- MOVE PLAYER
+
 -- users location
 SELECT * FROM mouse 
 WHERE user_id = 1;
 -- call of move procedure
-CALL sp_move_player(1, 1, 7);
+CALL sp_move_player(1, 1, 8);
 -- users new loaction
 SELECT * FROM mouse 
 WHERE user_id = 1;
+-- procedure called on illegal tile
+CALL sp_move_player(1, 1, 34);
+-- location not updated
+SELECT * FROM mouse 
+WHERE user_id = 1;
+
+-- MOVE CAT
 
 -- cat location
 SELECT * FROM cat
@@ -928,13 +1232,31 @@ CALL sp_move_cat(1);
 -- new loaction
 SELECT * FROM cat
 WHERE game_id = 1;
+-- testing cat player collision, placing cat in corner surrounded by mice
+UPDATE cat SET tile_id = 144 WHERE game_id = 1;
+UPDATE mouse SET tile_id = 131 WHERE user_id = 1;
+UPDATE mouse SET tile_id = 132 WHERE user_id = 4;
+UPDATE mouse SET tile_id = 143 WHERE user_id = 5;
+-- checking players scores and location
+SELECT * FROM mouse WHERE game_id = 1;
+-- moving mouse onto a player
+CALL sp_move_cat(1);
+-- checking a players new locations and scores, one of the players scores
+-- will be 100 less and new location will be tile_id 1
+SELECT * FROM mouse WHERE game_id = 1;
 
+-- KILL GAME
+
+-- new game to be killed
+CALL sp_newgame(2, 'TEST');
 -- game list
 SELECT * FROM game;
 -- kill game
-CALL sp_kill_game(3);
+CALL sp_kill_game(2);
 -- updated list
 SELECT * FROM game;
+
+-- ADD PLAYER TO GAME
 
 -- make new game
 CALL sp_newgame(1, "test_add");
@@ -944,6 +1266,12 @@ SELECT * FROM mouse;
 CALL sp_add_player(5, 1);
 -- updated list
 SELECT * FROM mouse;
+-- adding player already in game
+CALL sp_add_player(5, 1);
+-- player not added
+SELECT * FROM mouse;
+
+-- UPDATED USERNAME
 
 -- see player 1
 SELECT * FROM `user`
@@ -954,6 +1282,8 @@ CALL sp_update_user(1, 'newname');
 SELECT * FROM `user`
 WHERE user_id = 1;
 
+-- UNLOCKED PLAYER
+
 -- see locked player
 SELECT * FROM `user`
 WHERE user_id = 5;
@@ -963,6 +1293,8 @@ CALL sp_unlock_user(5);
 SELECT * FROM `user`
 WHERE user_id = 5;
 
+-- RMEOVE PLAYER FROM GAME
+
 -- see players(mice) in game
 SELECT * FROM mouse
 WHERE game_id = 1;
@@ -971,6 +1303,8 @@ CALL sp_remove_player(3, 1);
 -- see updated list
 SELECT * FROM mouse
 WHERE game_id = 1;
+
+-- DELETE USER
 
 -- user list
 SELECT * FROM user;
