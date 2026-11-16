@@ -1200,6 +1200,10 @@ SELECT * FROM mousetrap;
 CALL sp_place_trap(1);
 -- updated trap list
 SELECT * FROM mousetrap;
+-- rollback test
+CALL sp_place_trap(999);
+-- check that procedure rolled back
+SELECT * FROM mousetrap;
 
 -- ACTIVATE TRAP
 
@@ -1248,6 +1252,11 @@ CALL sp_move_cat(1);
 -- checking a players new locations and scores, one of the players scores
 -- will be 100 less and new location will be tile_id 1
 SELECT * FROM mouse WHERE game_id = 1;
+
+-- rollback test
+CALL sp_move_cat(999);
+-- check that procedure rolled back
+SELECT * FROM cat;
 
 -- KILL GAME
 
