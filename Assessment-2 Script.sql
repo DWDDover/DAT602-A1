@@ -133,7 +133,7 @@ BEGIN
 		VALUES
 			(1, 'michael', 'password123', 0, 400, 0, 2),
             (2, 'badmin', 'apple66', 0, 200, 1, 0),
-            (3, 'dave55', 'giraffe99', 0, 800, 0, 0),
+            (3, 'dave55', 'giraffe99', 1, 800, 0, 0),
             (4, 'mouseman', 'ocean1010', 0, 100, 0, 3),
             (5, 'rachel433', 'mypassword2', 1, 100, 0, 0),
             (6, 'admins', 'Admin123', 0, 0, 1, 0),
@@ -283,14 +283,14 @@ BEGIN
     WHERE username = p_username FOR UPDATE;
     
 	IF acc_locked = 1 THEN
-		SELECT 'locked' AS status, NULL AS user_id, NULL AS `admin`;
+		SELECT 'locked' AS status, 'Account is locked, contact and administrator' AS message, NULL AS user_id, NULL AS `admin`;
         ROLLBACK;
 	ELSEIF EXISTS ( 
 					SELECT * 
 					FROM `user`
 					WHERE p_username = username AND `password` = p_password
 				) THEN
-		SELECT 'success' AS status, user_id, `admin` FROM `user` WHERE username = p_username;
+		SELECT 'success' AS status, 'login successful' AS message, user_id, `admin` FROM `user` WHERE username = p_username;
         UPDATE `user`
         SET login_attempts = 0,
 			logged_in = TRUE
@@ -305,10 +305,10 @@ BEGIN
         SET login_attempts = login_attempts + 1, 
 			`locked` = IF((login_attempts + 1) > 4, 1, 0)
         WHERE p_username = username;
-		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+		SELECT 'failed' AS status, 'incorrect username or password' AS message, NULL AS user_id, NULL AS `admin`;
         COMMIT;
 	ELSE
-		SELECT 'failed' AS status, NULL AS user_id, NULL AS `admin`;
+		SELECT 'failed' AS status, 'incorrect username or password' AS message, NULL AS user_id, NULL AS `admin`;
         ROLLBACK;
 	END IF;
 
@@ -1519,6 +1519,6 @@ END $$
 
 DELIMITER ;
 
--- starting events
+-- starting events, comment this out when just testing scripts test calls
 
 SET GLOBAL event_scheduler = ON;

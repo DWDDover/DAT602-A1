@@ -25,6 +25,7 @@ namespace mousegame
                     if (reader.Read())
                     {
                         result.Status = (string)reader["status"];
+                        result.Message = (string)reader["message"];
                         result.UserId = reader["user_id"] == DBNull.Value ? null : (int?)reader["user_id"];
                         result.Admin = reader["admin"] == DBNull.Value ? null : (int?)reader["admin"];
                     }

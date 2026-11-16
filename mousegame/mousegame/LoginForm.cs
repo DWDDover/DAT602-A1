@@ -24,7 +24,7 @@ namespace mousegame
             else
             {
                 passwordTextbox.Clear();
-                MessageBox.Show(result.Status + " - " + "Incorrect username or password");
+                MessageBox.Show(result.Status + " - " + result.Message);
             }
         }
 
