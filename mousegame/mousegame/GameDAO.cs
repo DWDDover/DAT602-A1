@@ -116,19 +116,45 @@ namespace mousegame
             return items;
         }
 
-        public int newGame(int userId, string gameName)
+        public NewGameResult newGame(int userId, string gameName)
         {
-            int newGameId = -1;
-            using (var command = new MySqlCommand("sp_newgame", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("p_gamehost_id", userId);
-                command.Parameters.AddWithValue("p_gamename", gameName);
-                mySqlConnection.Open();
-                newGameId = Convert.ToInt32(command.ExecuteScalar());
-                mySqlConnection.Close();
+                NewGameResult result = new NewGameResult();
+                int newGameId = -1;
+                using (var command = new MySqlCommand("sp_newgame", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("p_gamehost_id", userId);
+                    command.Parameters.AddWithValue("p_gamename", gameName);
+                    mySqlConnection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            result.Status = (string)reader["status"];
+                            result.Message = (string)reader["message"];
+                            result.GameId = Convert.ToInt32(reader["new_game_id"]);
+                        }
+                    }
+                }
+                return result;
             }
-            return newGameId;
+            catch (MySqlException)
+            {
+                return new NewGameResult
+                {
+                    Status = "error",
+                    Message = "Unable to connect to the database. Please try again later."
+                };
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
         }
 
         public string GetGameName(int gameId)

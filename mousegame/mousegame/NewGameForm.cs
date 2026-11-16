@@ -25,10 +25,19 @@ namespace mousegame
                 return;
             }
             var dao = new GameDAO();
-            int newGameId = dao.newGame(_userId, gameNameTextbox.Text);
-            GameForm gameForm = new GameForm(_userId, newGameId);
-            gameForm.Show();
-            this.Hide();
+            NewGameResult result = dao.newGame(_userId, gameNameTextbox.Text);
+            if (result.GameId == -1 || result.Status != "success")
+            {
+                MessageBox.Show(result.Message);
+                return;
+            }
+            else
+            {
+                GameForm gameForm = new GameForm(_userId, result.GameId);
+                gameForm.Show();
+                this.Hide();
+            }
+
         }
     }
 }
