@@ -1217,7 +1217,7 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
             THEN
 				UPDATE `user`
                 SET high_score = v_score
-                WHERE user_id = v_user_id AND game_id = v_game_id;
+                WHERE user_id = v_user_id;
 			END IF;
             
 			DELETE FROM mouse
