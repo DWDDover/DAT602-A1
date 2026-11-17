@@ -79,7 +79,6 @@ namespace mousegame
             if (inventoryGrid.Rows[e.RowIndex].DataBoundItem is InventoryItem item)
             {
                 boardControl1.SelectMousetrap(item.ItemId);
-                System.Diagnostics.Debug.WriteLine($"Selected mousetrap {item.ItemId}. Click a board tile to place it.");
             }
         }
 
