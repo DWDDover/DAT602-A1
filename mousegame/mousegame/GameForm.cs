@@ -55,6 +55,8 @@ namespace mousegame
             score.Text = $"Score: {players.Find(p => p.UserId == _userId)?.Score ?? 0}";
             List<InventoryItem> inventory = dao.GetInventory(_userId, _gameId);
             inventoryGrid.DataSource = inventory;
+            List<Message> messages = dao.GetMessages(_gameId);
+            chatListBox.DataSource = messages;
             //get player score
         }
 
@@ -86,7 +88,16 @@ namespace mousegame
         {
             gameTick.Stop();
             GameDAO dao = new GameDAO();
-            dao.RemovePlayer(_userId, _gameId);
+            Result result = dao.RemovePlayer(_userId, _gameId);
+
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
         }
 
         private void gameTick_Tick(object sender, EventArgs e)
@@ -146,6 +157,20 @@ namespace mousegame
         private void exitBtn_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void sendMessageButton_Click(object sender, EventArgs e)
+        {
+            GameDAO dao = new GameDAO();
+            Result result = dao.SendMessage(_userId, _gameId, chatTextBox.Text);
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
         }
     }
 }

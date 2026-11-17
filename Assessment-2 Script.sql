@@ -1588,6 +1588,76 @@ CREATE PROCEDURE sp_inventory(IN p_game_id INT, IN p_user_id INT)
 
 DELIMITER ;
 
+-- messages for display
+
+DELIMITER $$
+CREATE PROCEDURE sp_messages(IN p_game_id INT)
+
+	BEGIN
+        
+		SELECT u.username, m.`timestamp`, m.content
+        FROM message m
+        INNER JOIN `user` u
+        ON m.user_id = u.user_id
+        WHERE game_id = p_game_id;
+		
+	END $$
+
+DELIMITER ;
+
+-- send message
+
+DELIMITER $$
+CREATE PROCEDURE sp_send_message(IN p_game_id INT, p_user_id INT, p_content VARCHAR(255))
+
+	BEGIN
+    
+    DECLARE v_user_id INT;
+    DECLARE v_game_id INT;
+    
+		DECLARE EXIT HANDLER FOR 1213, 1205
+			BEGIN
+				ROLLBACK;
+				SELECT 'retry' AS status, 'Busy, please try again' AS message;
+			END;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+			BEGIN
+				ROLLBACK;
+				SELECT 'error' AS status, 'Unexpected database error' AS message;
+			END;
+    
+		START TRANSACTION;
+        
+		SELECT p_user_id INTO v_user_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
+        
+        SELECT p_game_id INTO v_game_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
+        
+        IF v_user_id IS NULL
+		THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'user no longer exists' AS message;
+            
+		ELSEIF v_game_id IS NULL
+        THEN
+			ROLLBACK;
+			SELECT 'failed' AS status, 'user no longer exists' AS message;
+        ELSE
+   
+			INSERT INTO message(game_id, user_id, `timestamp`, content)
+			VALUES (p_game_id, p_user_id, NOW(), p_content);
+			COMMIT;
+            SELECT 'success' AS status, 'message sent' AS message;
+            
+		END IF;
+		
+	END $$
+
+DELIMITER ;
+
 -- GAME TICK EVENTS
 
 DROP EVENT IF EXISTS ev_move_cat;

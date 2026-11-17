@@ -123,6 +123,7 @@
             sendMessageButton.TabIndex = 9;
             sendMessageButton.Text = "Send";
             sendMessageButton.UseVisualStyleBackColor = true;
+            sendMessageButton.Click += sendMessageButton_Click;
             // 
             // exitBtn
             // 

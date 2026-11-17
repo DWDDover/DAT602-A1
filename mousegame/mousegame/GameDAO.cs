@@ -475,6 +475,48 @@ namespace mousegame
             return players;
         }
 
+        public List<Message> GetMessages(int gameId)
+        {
+            var messages = new List<Message>();
+            try
+            {
+                using (var command = new MySqlCommand("sp_messages", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("p_game_id", gameId);
+                    mySqlConnection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            messages.Add(new Message
+                            {
+                                Username = reader["username"].ToString(),
+                                Timestamp = reader["timestamp"].ToString(),
+                                Content = reader["content"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
+            return messages;
+        }
+
         public Result AddPlayer(int userId, int gameId)
         {
             Result result = new Result();
@@ -515,8 +557,9 @@ namespace mousegame
             }
             return result;
         }
-        public void RemovePlayer(int userId, int gameId)
+        public Result RemovePlayer(int userId, int gameId)
         {
+            Result result = new Result();
             try
             {
                 using (var command = new MySqlCommand("sp_remove_player", mySqlConnection))
@@ -525,16 +568,25 @@ namespace mousegame
                     command.Parameters.AddWithValue("p_user_id", userId);
                     command.Parameters.AddWithValue("p_game_id", gameId);
                     mySqlConnection.Open();
-                    command.ExecuteNonQuery();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            result.Status = (string)reader["status"];
+                            result.Message = (string)reader["message"];
+                        }
+                    }
                 }
             }
             catch (MySqlException)
             {
-                MessageBox.Show("Unable to connect to the database. Please try again later.");
+                result.Status = "error";
+                result.Message = "Unable to connect to the database. Please try again later.";
             }
             catch (Exception)
             {
-                MessageBox.Show("An unexpected error occurred.");
+                result.Status = "error";
+                result.Message = "An unexpected error occurred.";
             }
             finally
             {
@@ -543,6 +595,49 @@ namespace mousegame
                     mySqlConnection.Close();
                 }
             }
+            return result;
+        }
+
+        public Result SendMessage(int userId, int gameId, string content)
+        {
+            Result result = new Result();
+            try
+            {
+                using (var command = new MySqlCommand("sp_send_message", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("p_user_id", userId);
+                    command.Parameters.AddWithValue("p_game_id", gameId);
+                    command.Parameters.AddWithValue("p_content", content);
+                    mySqlConnection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            result.Status = (string)reader["status"];
+                            result.Message = (string)reader["message"];
+                        }
+                    }
+                }
+            }
+            catch (MySqlException)
+            {
+                result.Status = "error";
+                result.Message = "Unable to connect to the database. Please try again later.";
+            }
+            catch (Exception)
+            {
+                result.Status = "error";
+                result.Message = "An unexpected error occurred.";
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
+            return result;
         }
     }
 }
