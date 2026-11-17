@@ -36,7 +36,8 @@ namespace mousegame
         {
             AdminDAO dao = new AdminDAO();
             UserInfo user = (UserInfo)userGrid.CurrentRow.DataBoundItem;
-            dao.UnlockUser(user.UserId);
+            Result result = dao.UnlockUser(user.UserId);
+            MessageBox.Show($"{result.Status}: {result.Message}");
         }
 
         private void deleteBtn_Click(object sender, EventArgs e)

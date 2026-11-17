@@ -25,8 +25,17 @@ namespace mousegame
         private void saveBtn_Click(object sender, EventArgs e)
         {
             AdminDAO dao = new AdminDAO();
-            dao.UpdateUser(_user.UserId, usernameTextbox.Text);
-            this.Close();
+            Result result = dao.UpdateUser(_user.UserId, usernameTextbox.Text);
+
+            if (result.Status == "success")
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
         }
 
         private void cancelBtn_Click(object sender, EventArgs e)

@@ -947,6 +947,8 @@ DELIMITER ;
 CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
 
 	BEGIN
+    
+		DECLARE v_game_id INT;
 		
         -- Handles not found errors for deletion
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -963,14 +965,26 @@ CREATE PROCEDURE sp_kill_game(IN p_game_id INT)
         
         START TRANSACTION;
         
-        DELETE FROM game
-        WHERE game_id = p_game_id;
+        SELECT game_id INTO v_game_id
+		FROM game 
+		WHERE game_id = p_game_id FOR UPDATE;
         
-        DELETE FROM mousetrap
-		WHERE mousetrap_id IN (SELECT mousetrap_id FROM inventory WHERE game_id = p_game_id);
+        IF v_game_id IS NULL
+        THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'game no longer exists' AS message;
+        ELSE
         
-        COMMIT;
-        SELECT 'success' AS status, 'game killed' AS message;
+			DELETE FROM game
+			WHERE game_id = p_game_id;
+			
+			DELETE FROM mousetrap
+			WHERE mousetrap_id IN (SELECT mousetrap_id FROM inventory WHERE game_id = p_game_id);
+        
+			COMMIT;
+			SELECT 'success' AS status, 'game killed' AS message;
+		
+        END IF;
 		
 	END $$
 
@@ -986,6 +1000,8 @@ CREATE PROCEDURE sp_add_player(IN p_user_id INT, IN p_game_id INT)
 BEGIN
         
 	DECLARE start_tile INT;
+    DECLARE v_game_id INT;
+    DECLARE v_user_id INT;
         
 	DECLARE EXIT HANDLER FOR 1062
 		BEGIN
@@ -1005,18 +1021,40 @@ BEGIN
 		END;
 		
 	START TRANSACTION;
+    
+    SELECT game_id INTO v_game_id
+    FROM game 
+    WHERE game_id = p_game_id FOR UPDATE;
+    
+    SELECT user_id INTO v_user_id
+    FROM `user` 
+    WHERE user_id = p_user_id FOR UPDATE;
+    
+    IF v_game_id IS NULL
+    THEN
+		ROLLBACK;
+        SELECT 'failed' AS status, 'the game no longer exists' AS message;
+        
+	ELSEIF v_user_id IS NULL
+    THEN
+		ROLLBACK;
+        SELECT 'failed' AS status, 'Your account has been removed' AS message;
 	
-	SELECT tile_id INTO start_tile
-	FROM tile
-	WHERE game_id = p_game_id AND
-		col = 1 AND `row` = 1;
+    ELSE
 	
-	INSERT INTO mouse(user_id, game_id, tile_id, score)
-	VALUES
-		(p_user_id, p_game_id, start_tile, 0);
+		SELECT tile_id INTO start_tile
+		FROM tile
+		WHERE game_id = p_game_id AND
+			col = 1 AND `row` = 1;
 		
-	COMMIT;
-    SELECT 'success' AS status, 'player added to game' AS message;
+		INSERT INTO mouse(user_id, game_id, tile_id, score)
+		VALUES
+			(p_user_id, p_game_id, start_tile, 0);
+			
+		COMMIT;
+		SELECT 'success' AS status, 'player added to game' AS message;
+        
+	END IF;
 		
 END $$
 
@@ -1025,11 +1063,15 @@ DELIMITER ;
  -- update data of a player (11)
  -- one procedure to update the username of a user
 -- and one to remove the locked status from a user
+-- user id paramters are taken and put into a new value to test that the
+-- user still exists
  
 DELIMITER $$
 CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
 
 	BEGIN
+    
+		DECLARE v_user_id INT;
     
 		DECLARE EXIT HANDLER FOR 1062
 			BEGIN
@@ -1050,12 +1092,22 @@ CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50))
     
 		START TRANSACTION;
         
-        UPDATE `user`
-        SET username = p_username
-        WHERE user_id = p_user_id;
+		SELECT user_id INTO v_user_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
         
-        COMMIT;
-        SELECT 'success' AS status, 'player updated' AS message;
+        IF v_user_id IS NULL
+        THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'user no longer exists' AS message;
+		ELSE
+			UPDATE `user`
+			SET username = p_username
+			WHERE user_id = v_user_id;
+			
+			COMMIT;
+			SELECT 'success' AS status, 'player updated' AS message;
+		END IF;
 		
 	END $$
 
@@ -1065,6 +1117,8 @@ DELIMITER $$
 CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
 
 	BEGIN
+    
+		DECLARE v_user_id INT;
     
 		DECLARE EXIT HANDLER FOR 1213, 1205
 			BEGIN
@@ -1079,12 +1133,25 @@ CREATE PROCEDURE sp_unlock_user(IN p_user_id INT)
     
 		START TRANSACTION;
         
-        UPDATE `user`
-        SET `locked` = 0
-        WHERE user_id = p_user_id;
+		SELECT user_id INTO v_user_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
         
-        COMMIT;
-        SELECT 'success' AS status, 'player unlocked' AS message;
+        IF v_user_id IS NULL
+        THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'user no longer exists' AS message;
+            
+		ELSE
+        
+			UPDATE `user`
+			SET `locked` = 0
+			WHERE user_id = v_user_id;
+			
+			COMMIT;
+			SELECT 'success' AS status, 'player unlocked' AS message;
+            
+		END IF;
 		
 	END $$
 
@@ -1335,6 +1402,10 @@ WHERE user_id = 5;
 CALL sp_unlock_user(5);
 -- confirm unlocked
 SELECT * FROM `user`
+WHERE user_id = 5;
+-- re lock for further testing
+UPDATE `user`
+SET `locked` = 1
 WHERE user_id = 5;
 
 -- RMEOVE PLAYER FROM GAME
