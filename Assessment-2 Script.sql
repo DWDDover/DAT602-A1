@@ -1167,6 +1167,11 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
 
 	BEGIN
     
+		DECLARE v_user_id INT;
+        DECLARE v_game_id INT;
+        DECLARE v_score INT;
+        DECLARE v_high_score INT;
+    
 		DECLARE EXIT HANDLER FOR 1213, 1205
 			BEGIN
 				ROLLBACK;
@@ -1180,21 +1185,57 @@ CREATE PROCEDURE sp_remove_player(IN p_user_id INT, IN p_game_id INT)
     
 		START TRANSACTION;
         
-        DELETE FROM mouse
-        WHERE user_id = p_user_id AND game_id = p_game_id;
+		SELECT game_id INTO v_game_id
+		FROM game 
+		WHERE game_id = p_game_id FOR UPDATE;
+		
+		SELECT user_id INTO v_user_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
         
-        IF NOT EXISTS (
-						SELECT game_id
-                        FROM mouse
-                        WHERE game_id = p_game_id
-                        )
+        SELECT score INTO v_score
+        FROM mouse
+        WHERE user_id = v_user_id AND game_id = v_game_id;
+        
+        SELECT high_score INTO v_high_score
+        FROM `user`
+        WHERE user_id = v_user_id;
+			
+        IF v_user_id IS NULL
 		THEN
-			DELETE FROM game
-            WHERE game_id = p_game_id;
-		END IF;
+			ROLLBACK;
+            SELECT 'failed' AS status, 'user no longer exists' AS message;
+            
+		ELSEIF v_game_id IS NULL
+		THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'game no longer exists' AS message;
+            
+		ELSE
+        
+			IF v_score > v_high_score
+            THEN
+				UPDATE `user`
+                SET high_score = v_score
+                WHERE user_id = v_user_id AND game_id = v_game_id;
+			END IF;
+            
+			DELETE FROM mouse
+			WHERE user_id = v_user_id AND game_id = v_game_id;
+			
+			IF NOT EXISTS (
+							SELECT game_id
+							FROM mouse
+							WHERE game_id = v_game_id
+							)
+			THEN
+				DELETE FROM game
+				WHERE game_id = v_game_id;
+			END IF;
         
         COMMIT;
         SELECT 'success' AS status, 'player removed from game' AS message;
+	END IF;
 		
 	END $$
 
@@ -1207,6 +1248,8 @@ CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
 
 	BEGIN
     
+		DECLARE v_user_id INT;
+    
 		DECLARE EXIT HANDLER FOR 1213, 1205
 			BEGIN
 				ROLLBACK;
@@ -1220,10 +1263,23 @@ CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
     
 		START TRANSACTION;
         
-        DELETE FROM `user`
-        WHERE user_id = p_user_id;
-        COMMIT;
-        SELECT 'success' AS status, 'player deleted' AS message;
+		SELECT user_id INTO v_user_id
+		FROM `user` 
+		WHERE user_id = p_user_id FOR UPDATE;
+        
+        IF v_user_id IS NULL
+		THEN
+			ROLLBACK;
+            SELECT 'failed' AS status, 'user no longer exists' AS message;
+		
+        ELSE
+        
+			DELETE FROM `user`
+			WHERE user_id = p_user_id;
+			COMMIT;
+			SELECT 'success' AS status, 'player deleted' AS message;
+            
+		END IF;
 		
 	END $$
 

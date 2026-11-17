@@ -44,9 +44,18 @@ namespace mousegame
         {
             AdminDAO dao = new AdminDAO();
             UserInfo user = (UserInfo)userGrid.CurrentRow.DataBoundItem;
-            dao.DeleteUser(user.UserId);
-            List<UserInfo> users = dao.GetAllUsers();
-            userGrid.DataSource = users;
+            Result result = dao.DeleteUser(user.UserId);
+
+            if (result.Status == "success")
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+                List<UserInfo> users = dao.GetAllUsers();
+                userGrid.DataSource = users;
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
         }
 
         private void addBtn_Click(object sender, EventArgs e)
