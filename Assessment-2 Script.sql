@@ -530,10 +530,14 @@ BEGIN
     FROM game 
     WHERE game_id = p_game_id FOR UPDATE;
 
+	-- check game still exists
     SET random_tile = f_free_tile(p_game_id);
+    IF v_game_id IS NULL
+		THEN ROLLBACK;
+        SELECT 'failed' AS status, 'game no longer exists' AS message;
     
     -- Checking that the free tile is not null meaning the entire board is full
-    IF random_tile IS NULL
+    ELSEIF random_tile IS NULL
 		THEN ROLLBACK;
         SELECT 'failed' AS status, 'no free tiles' AS message;
     ELSE
@@ -579,7 +583,13 @@ BEGIN
 
     SET random_tile = f_free_tile(v_game_id);
     
-    IF random_tile IS NULL
+	-- check game still exists
+    SET random_tile = f_free_tile(p_game_id);
+    IF v_game_id IS NULL
+		THEN ROLLBACK;
+        SELECT 'failed' AS status, 'game no longer exists' AS message;
+    
+    ELSEIF random_tile IS NULL
 		THEN ROLLBACK;
         SELECT 'failed' AS status, 'no tiles available' AS message;
     ELSE
@@ -708,115 +718,136 @@ DELIMITER ;
 -- also includes update data of a player (11) when adding score and moving location
 -- generic checks for lockouts added, as well as locking with for updates.
 -- check that game still exists added in the case of games being killed while moves are happening
+-- Seperate messages added for different events
 
 DELIMITER $$
-CREATE PROCEDURE sp_move_player(IN p_user_id INT, p_game_id INT, IN p_tile_id INT)
 
-	BEGIN
+DROP PROCEDURE IF EXISTS sp_move_player $$
 
-	DECLARE available BOOL;
+CREATE PROCEDURE sp_move_player(
+    IN p_user_id INT,
+    IN p_game_id INT,
+    IN p_tile_id INT
+)
+BEGIN
+    DECLARE occupied BOOL;
     DECLARE adjacent BOOL;
     DECLARE v_game_id INT;
-    
+    DECLARE v_message VARCHAR(255);
+
     DECLARE EXIT HANDLER FOR 1213, 1205
-		BEGIN
-			ROLLBACK;
-			SELECT 'retry' AS status, 'Busy, please try again' AS message;
-		END;
+    BEGIN
+        ROLLBACK;
+        SELECT 'retry' AS status, 'Busy, please try again' AS message;
+    END;
+
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
-		BEGIN
-			ROLLBACK;
-			SELECT 'error' AS status, 'Unexpected database error' AS message;
-		END;
-    
+    BEGIN
+        ROLLBACK;
+        SELECT 'error' AS status, 'Unexpected database error' AS message;
+    END;
+
     START TRANSACTION;
-    
-	SELECT game_id INTO v_game_id
-    FROM game 
-    WHERE game_id = p_game_id FOR UPDATE;
-    
+
+    SELECT game_id
+    INTO v_game_id
+    FROM game
+    WHERE game_id = p_game_id
+    FOR UPDATE;
+
     IF v_game_id IS NULL THEN
-		ROLLBACK;
-		SELECT 'failed' AS status, 'game no longer exists' AS message;
-        
-	ELSE
-    
-    SET adjacent = f_tile_available(p_user_id, v_game_id, p_tile_id);
-    SET available = f_tile_occupied(p_tile_id);
-    
-    
-    IF adjacent = TRUE AND available = FALSE
-    THEN 
-    
-		UPDATE mouse
-		SET tile_id = p_tile_id
-		WHERE user_id = p_user_id AND game_id = p_game_id;
-		
-        IF EXISTS (
-				SELECT *
-				FROM cheese
-				WHERE tile_id = p_tile_id
-            )
-            THEN
-				UPDATE mouse
-                SET score = score + ( 
-										SELECT `value`
-                                        FROM cheese
-                                        WHERE tile_id = p_tile_id
-									)
-				WHERE user_id = p_user_id AND
-                game_id = p_game_id;
-				DELETE FROM cheese
+        ROLLBACK;
+        SELECT 'failed' AS status, 'Game no longer exists' AS message;
+
+    ELSE
+        SET adjacent = f_tile_available(p_user_id, v_game_id, p_tile_id);
+        SET occupied = f_tile_occupied(p_tile_id);
+
+        IF adjacent = TRUE AND occupied = FALSE THEN
+
+            UPDATE mouse
+            SET tile_id = p_tile_id
+            WHERE user_id = p_user_id
+              AND game_id = p_game_id;
+
+            IF EXISTS (
+                SELECT *
+                FROM cheese
+                WHERE tile_id = p_tile_id
+            ) THEN
+                UPDATE mouse
+                SET score = score + (
+                    SELECT `value`
+                    FROM cheese
+                    WHERE tile_id = p_tile_id
+                )
+                WHERE user_id = p_user_id
+                  AND game_id = p_game_id;
+
+                DELETE FROM cheese
                 WHERE tile_id = p_tile_id;
-		
-        END IF;
-        
-        IF EXISTS (
-				SELECT *
-				FROM mousetrap
-				WHERE tile_id = p_tile_id AND activated = 0
-            )
-            THEN
-				INSERT INTO inventory(user_id, game_id, mousetrap_id)
-                VALUES (p_user_id, p_game_id, (
-												SELECT mousetrap_id
-												FROM mousetrap
-                                                WHERE tile_id = p_tile_id
-                                                ));
-				UPDATE mousetrap
+
+                SET v_message = 'Score increased by 100';
+
+            ELSEIF EXISTS (
+                SELECT *
+                FROM mousetrap
+                WHERE tile_id = p_tile_id
+                  AND activated = 0
+            ) THEN
+                INSERT INTO inventory(user_id, game_id, mousetrap_id)
+                VALUES (
+                    p_user_id,
+                    p_game_id,
+                    (
+                        SELECT mousetrap_id
+                        FROM mousetrap
+                        WHERE tile_id = p_tile_id
+                    )
+                );
+
+                UPDATE mousetrap
                 SET tile_id = NULL
                 WHERE tile_id = p_tile_id;
-                
-		END IF;
-        
-        IF EXISTS (
-				SELECT *
-				FROM mousetrap
-				WHERE tile_id = p_tile_id AND activated = 1
-            )
-            THEN
-				UPDATE mouse
-                SET tile_id = (
-								SELECT tile_id
-                                FROM tile
-                                WHERE game_id = p_game_id AND
-                                col = 1 AND `row` = 1
-                                )
-				WHERE user_id = p_user_id AND game_id = p_game_id;
-				DELETE FROM mousetrap
-                WHERE tile_id = p_tile_id;
-			
-			END IF;
-            COMMIT;
-            SELECT 'success' AS status, 'player moved successfully' AS message;
-	ELSE
-		ROLLBACK;
-		SELECT 'failed' AS status, 'illegal move' AS message;
-	END IF;
-    
-    END IF;
 
-	END $$
+                SET v_message = 'Mousetrap collected';
+
+            ELSEIF EXISTS (
+                SELECT *
+                FROM mousetrap
+                WHERE tile_id = p_tile_id
+                  AND activated = 1
+            ) THEN
+                UPDATE mouse
+                SET tile_id = (
+                    SELECT tile_id
+                    FROM tile
+                    WHERE game_id = p_game_id
+                      AND col = 1
+                      AND `row` = 1
+                )
+                WHERE user_id = p_user_id
+                  AND game_id = p_game_id;
+
+                DELETE FROM mousetrap
+                WHERE tile_id = p_tile_id;
+
+                SET v_message = 'Trap hit; score decreased by 100';
+
+            ELSE
+                SET v_message = 'Player moved successfully';
+            END IF;
+
+            COMMIT;
+
+            SELECT 'success' AS status, v_message AS message;
+
+        ELSE
+            ROLLBACK;
+            SELECT 'failed' AS status, 'Illegal move' AS message;
+        END IF;
+    END IF;
+END $$
 
 DELIMITER ;
 
@@ -1345,24 +1376,54 @@ DELIMITER ;
 
 -- game state for a given game, used to update the GUI board
 
-DELIMITER $$
-CREATE PROCEDURE sp_gamestate(IN p_game_id INT)
+DROP PROCEDURE IF EXISTS sp_gamestate;
 
-	BEGIN
-        
-	SELECT tile_id, 'mouse' AS kind, user_id AS ref_id
-	FROM mouse WHERE game_id = p_game_id
-	UNION ALL
-	SELECT tile_id, 'cheese', cheese_id
-	FROM cheese JOIN tile USING (tile_id) WHERE game_id = p_game_id
+DELIMITER $$
+
+CREATE PROCEDURE sp_gamestate(IN p_game_id INT)
+BEGIN
+
+    SELECT
+        tile_id,
+        'mouse' AS kind,
+        user_id AS ref_id
+    FROM mouse
+    WHERE game_id = p_game_id
+
     UNION ALL
-	SELECT tile_id, 'cat', cat_id
-	FROM cat WHERE game_id = p_game_id
+
+    SELECT
+        tile_id,
+        'cheese' AS kind,
+        cheese_id AS ref_id
+    FROM cheese
+    JOIN tile USING (tile_id)
+    WHERE game_id = p_game_id
+
     UNION ALL
-	SELECT tile_id, 'mousetrap', mousetrap_id
-	FROM mousetrap JOIN tile USING (tile_id) WHERE game_id = p_game_id AND tile_id IS NOT NULL;
-		
-	END $$
+
+    SELECT
+        tile_id,
+        'cat' AS kind,
+        cat_id AS ref_id
+    FROM cat
+    WHERE game_id = p_game_id
+
+    UNION ALL
+
+    SELECT
+        tile_id,
+        CASE
+            WHEN activated = 1 THEN 'mousetrapactivated'
+            ELSE 'mousetrap'
+        END AS kind,
+        mousetrap_id AS ref_id
+    FROM mousetrap
+    JOIN tile USING (tile_id)
+    WHERE game_id = p_game_id
+      AND tile_id IS NOT NULL;
+
+END $$
 
 DELIMITER ;
 
