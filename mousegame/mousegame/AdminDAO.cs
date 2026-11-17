@@ -11,37 +11,71 @@ namespace mousegame
     {
         public void KillGame(int gameId)
         {
-            using (var command = new MySqlCommand("sp_kill_game", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_game_id", gameId);
-                mySqlConnection.Open();
-                command.ExecuteNonQuery();
-                mySqlConnection.Close();
+                using (var command = new MySqlCommand("sp_kill_game", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_game_id", gameId);
+                    mySqlConnection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
         }
 
         public List<UserInfo> GetAllUsers()
         {
             var users = new List<UserInfo>();
-            using (var command = new MySqlCommand("sp_GetAllUsers", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                mySqlConnection.Open();
-                using (var reader = command.ExecuteReader())
+                using (var command = new MySqlCommand("sp_GetAllUsers", mySqlConnection))
                 {
-                    while (reader.Read())
+                    command.CommandType = CommandType.StoredProcedure;
+                    mySqlConnection.Open();
+                    using (var reader = command.ExecuteReader())
                     {
-                        var user = new UserInfo
+                        while (reader.Read())
                         {
-                            UserId = (int)reader["user_id"],
-                            Username = (string)reader["username"],
-                            Locked = (int)reader["locked"]
-                        };
-                        users.Add(user);
+                            var user = new UserInfo
+                            {
+                                UserId = (int)reader["user_id"],
+                                Username = (string)reader["username"],
+                                Locked = (int)reader["locked"]
+                            };
+                            users.Add(user);
+                        }
                     }
                 }
-                mySqlConnection.Close();
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
             return users;
         }
@@ -49,65 +83,129 @@ namespace mousegame
         public List<GameInfo> GetAllGames()
         {
             var games = new List<GameInfo>();
-
-            using (var command = new MySqlCommand("GetAllGames", mySqlConnection))
+            try
             {
-
-                command.CommandType = CommandType.StoredProcedure;
-
-                mySqlConnection.Open();
-
-                using (var reader = command.ExecuteReader())
+                using (var command = new MySqlCommand("GetAllGames", mySqlConnection))
                 {
-                    while (reader.Read())
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    mySqlConnection.Open();
+
+                    using (var reader = command.ExecuteReader())
                     {
-                        var tile = new GameInfo
+                        while (reader.Read())
                         {
-                            GameId = (int)reader["game_id"],
-                            Name = (string)reader["name"],
-                            PlayerCount = Convert.ToInt32(reader["player_count"])
-                        };
-                        games.Add(tile);
+                            var tile = new GameInfo
+                            {
+                                GameId = (int)reader["game_id"],
+                                Name = (string)reader["name"],
+                                PlayerCount = Convert.ToInt32(reader["player_count"])
+                            };
+                            games.Add(tile);
+                        }
                     }
                 }
-
-                mySqlConnection.Close();
             }
-
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
             return games;
         }
         public void UpdateUser(int userId, string username)
         {
-            using (var command = new MySqlCommand("sp_update_user", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_user_id", userId);
-                command.Parameters.AddWithValue("@p_username", username);
-                mySqlConnection.Open();
-                command.ExecuteNonQuery();
-                mySqlConnection.Close();
+                using (var command = new MySqlCommand("sp_update_user", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_user_id", userId);
+                    command.Parameters.AddWithValue("@p_username", username);
+                    mySqlConnection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
         }
         public void UnlockUser(int userId)
         {
-            using (var command = new MySqlCommand("sp_unlock_user", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_user_id", userId);
-                mySqlConnection.Open();
-                command.ExecuteNonQuery();
-                mySqlConnection.Close();
+                using (var command = new MySqlCommand("sp_unlock_user", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_user_id", userId);
+                    mySqlConnection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
         }
         public void DeleteUser(int userId)
         {
-            using (var command = new MySqlCommand("sp_delete_user", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_user_id", userId);
-                mySqlConnection.Open();
-                command.ExecuteNonQuery();
-                mySqlConnection.Close();
+                using (var command = new MySqlCommand("sp_delete_user", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_user_id", userId);
+                    mySqlConnection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Unable to connect to the database. Please try again later.");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("An unexpected error occurred.");
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
         }
     }

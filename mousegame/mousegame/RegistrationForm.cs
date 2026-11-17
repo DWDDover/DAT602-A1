@@ -29,18 +29,6 @@ namespace mousegame
                 MessageBox.Show("Account created successfully");
                 this.Hide();
             }
-            else if (result == "duplicate_username")
-            {
-                MessageBox.Show("Username already exists");
-            }
-            else if (result == "username_short")
-            {
-                MessageBox.Show("Username must be at least 6 characters long");
-            }
-            else if (result == "password_short")
-            {
-                MessageBox.Show("Password must be at least 6 characters long");
-            }
             else
             {
                 passwordTextbox.Clear();

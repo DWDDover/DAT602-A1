@@ -53,8 +53,9 @@
             // boardControl1
             // 
             boardControl1.Location = new Point(12, 43);
+            boardControl1.Margin = new Padding(3, 4, 3, 4);
             boardControl1.Name = "boardControl1";
-            boardControl1.Size = new Size(733, 680);
+            boardControl1.Size = new Size(733, 671);
             boardControl1.TabIndex = 0;
             // 
             // inventoryLabel
@@ -80,9 +81,11 @@
             // 
             // playersDataGrid
             // 
+            playersDataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             playersDataGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             playersDataGrid.Location = new Point(751, 169);
             playersDataGrid.Name = "playersDataGrid";
+            playersDataGrid.RowHeadersWidth = 20;
             playersDataGrid.Size = new Size(263, 164);
             playersDataGrid.TabIndex = 5;
             // 
@@ -123,12 +126,13 @@
             // 
             // exitBtn
             // 
-            exitBtn.Location = new Point(881, 721);
+            exitBtn.Location = new Point(881, 723);
             exitBtn.Name = "exitBtn";
             exitBtn.Size = new Size(133, 37);
             exitBtn.TabIndex = 11;
             exitBtn.Text = "Exit Game";
             exitBtn.UseVisualStyleBackColor = true;
+            exitBtn.Click += exitBtn_Click;
             // 
             // label1
             // 
@@ -152,7 +156,7 @@
             // 
             // gameTick
             // 
-            gameTick.Interval = 1000;
+            gameTick.Interval = 20;
             gameTick.Tick += gameTick_Tick;
             // 
             // moveCatBtn
@@ -179,7 +183,7 @@
             // 
             score.AutoSize = true;
             score.Font = new Font("Segoe UI", 18F);
-            score.Location = new Point(12, 726);
+            score.Location = new Point(12, 728);
             score.Name = "score";
             score.Size = new Size(34, 32);
             score.TabIndex = 16;
@@ -187,9 +191,9 @@
             // 
             // mousetrapBtn
             // 
-            mousetrapBtn.Location = new Point(298, 14);
+            mousetrapBtn.Location = new Point(271, 14);
             mousetrapBtn.Name = "mousetrapBtn";
-            mousetrapBtn.Size = new Size(103, 23);
+            mousetrapBtn.Size = new Size(137, 23);
             mousetrapBtn.TabIndex = 17;
             mousetrapBtn.Text = "Place mousetrap";
             mousetrapBtn.UseVisualStyleBackColor = true;
@@ -197,9 +201,11 @@
             // 
             // inventoryGrid
             // 
+            inventoryGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             inventoryGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             inventoryGrid.Location = new Point(751, 44);
             inventoryGrid.Name = "inventoryGrid";
+            inventoryGrid.RowHeadersWidth = 51;
             inventoryGrid.Size = new Size(263, 87);
             inventoryGrid.TabIndex = 18;
             // 
@@ -207,7 +213,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1041, 770);
+            ClientSize = new Size(1041, 786);
             Controls.Add(inventoryGrid);
             Controls.Add(mousetrapBtn);
             Controls.Add(score);

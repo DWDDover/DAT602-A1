@@ -4,9 +4,8 @@ using System.Text;
 
 namespace mousegame
 {
-    public class LoginResult
+    public class LoginResult : Result
     {
-        public string Status { get; set; }
         public int? UserId { get; set; }
 
         public int? Admin { get; set; }

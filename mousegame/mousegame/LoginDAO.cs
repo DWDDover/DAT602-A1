@@ -12,42 +12,91 @@ namespace mousegame
     {
         public LoginResult Login(string p_username, string p_password)
         {
-            var result = new LoginResult();
-            using (var command = new MySqlCommand("sp_login", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_username", p_username);
-                command.Parameters.AddWithValue("@p_password", p_password);
-                mySqlConnection.Open();
+                var result = new LoginResult();
 
-                using (var reader = command.ExecuteReader())
+                using (var command = new MySqlCommand("sp_login", mySqlConnection))
                 {
-                    if (reader.Read())
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_username", p_username);
+                    command.Parameters.AddWithValue("@p_password", p_password);
+
+                    mySqlConnection.Open();
+
+                    using (var reader = command.ExecuteReader())
                     {
-                        result.Status = (string)reader["status"];
-                        result.UserId = reader["user_id"] == DBNull.Value ? null : (int?)reader["user_id"];
-                        result.Admin = reader["admin"] == DBNull.Value ? null : (int?)reader["admin"];
+                        if (reader.Read())
+                        {
+                            result.Status = (string)reader["status"];
+                            result.Message = (string)reader["message"];
+                            result.UserId = reader["user_id"] == DBNull.Value
+                                ? null
+                                : (int?)reader["user_id"];
+                            result.Admin = reader["admin"] == DBNull.Value
+                                ? null
+                                : (int?)reader["admin"];
+                        }
                     }
                 }
 
-                mySqlConnection.Close();
+                return result;
             }
-
-            return result;
+            catch (MySqlException)
+            {
+                return new LoginResult
+                {
+                    Status = "error",
+                    Message = "Unable to connect to the database. Please try again later."
+                };
+            }
+            catch (Exception)
+            {
+                return new LoginResult
+                {
+                    Status = "error",
+                    Message = "An unexpected error occurred."
+                };
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
         }
         public string Register(string p_username, string p_password)
         {
-            using (var command = new MySqlCommand("sp_registration", mySqlConnection))
+            try
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@p_username", p_username);
-                command.Parameters.AddWithValue("@p_password", p_password);
+                using (var command = new MySqlCommand("sp_registration", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@p_username", p_username);
+                    command.Parameters.AddWithValue("@p_password", p_password);
 
-                mySqlConnection.Open();
-                var status = command.ExecuteScalar();
-                mySqlConnection.Close();
+                    mySqlConnection.Open();
+                    var status = command.ExecuteScalar();
+                    mySqlConnection.Close();
 
-                return Convert.ToString(status);
+                    return Convert.ToString(status);
+                }
+            }
+            catch (MySqlException)
+            {
+                return "Unable to connect to the database. Please try again later.";
+            }
+            catch (Exception)
+            {
+                return "An unexpected error occurred.";
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
             }
         }
     }

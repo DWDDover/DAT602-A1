@@ -11,10 +11,12 @@ namespace mousegame
     public partial class NewGameForm : Form
     {
         private readonly int _userId;
-        public NewGameForm(int userId)
+        private readonly int _admin;
+        public NewGameForm(int userId, int Admin)
         {
             InitializeComponent();
             _userId = userId;
+            _admin = Admin;
         }
 
         private void createBtn_Click(object sender, EventArgs e)
@@ -25,10 +27,20 @@ namespace mousegame
                 return;
             }
             var dao = new GameDAO();
-            int newGameId = dao.newGame(_userId, gameNameTextbox.Text);
-            GameForm gameForm = new GameForm(_userId, newGameId);
-            gameForm.Show();
-            this.Hide();
+            NewGameResult result = dao.newGame(_userId, gameNameTextbox.Text);
+            if (result.GameId == -1 || result.Status != "success")
+            {
+                MessageBox.Show(result.Message);
+                return;
+            }
+            else
+            {
+                GameForm gameForm = new GameForm(_userId, result.GameId, _admin);
+                gameForm.Show();
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message} with ID: {result.GameId}");
+                this.Hide();
+            }
+
         }
     }
 }
