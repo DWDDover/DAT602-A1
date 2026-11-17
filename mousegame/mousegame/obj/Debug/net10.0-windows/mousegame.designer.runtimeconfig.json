@@ -12,7 +12,7 @@
       }
     ],
     "additionalProbingPaths": [
-      "C:\\Users\\decla\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\Declan\\.dotnet\\store\\|arch|\\|tfm|",
       "C:\\Users\\decla\\.nuget\\packages",
       "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
     ],
