@@ -114,6 +114,7 @@
             chatTextBox.Size = new Size(263, 49);
             chatTextBox.TabIndex = 8;
             chatTextBox.Text = "";
+            chatTextBox.KeyDown += chatTextBox_KeyDown;
             // 
             // sendMessageButton
             // 

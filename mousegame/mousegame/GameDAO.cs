@@ -598,7 +598,7 @@ namespace mousegame
             return result;
         }
 
-        public Result SendMessage(int userId, int gameId, string content)
+        public Result SendMessage(int gameId, int userId, string content)
         {
             Result result = new Result();
             try
@@ -606,8 +606,8 @@ namespace mousegame
                 using (var command = new MySqlCommand("sp_send_message", mySqlConnection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("p_user_id", userId);
                     command.Parameters.AddWithValue("p_game_id", gameId);
+                    command.Parameters.AddWithValue("p_user_id", userId);
                     command.Parameters.AddWithValue("p_content", content);
                     mySqlConnection.Open();
                     using (var reader = command.ExecuteReader())

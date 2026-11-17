@@ -12,7 +12,11 @@ namespace mousegame
 
         public override string ToString()
         {
-            return $"{Timestamp} - {Username}: {Content}";
+            var time = DateTime.TryParse(Timestamp, out var parsedTimestamp)
+                ? parsedTimestamp.ToString("HH:mm")
+                : Timestamp;
+
+            return $"{time} - {Username}: {Content}";
         }
     }
 }

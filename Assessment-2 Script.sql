@@ -55,7 +55,7 @@ BEGIN
     );
     
     CREATE TABLE message(
-		message_id INT PRIMARY KEY,
+		message_id INT PRIMARY KEY AUTO_INCREMENT,
         game_id INT NOT NULL,
         user_id INT NOT NULL,
 		`timestamp` DATETIME NOT NULL,
@@ -1599,7 +1599,8 @@ CREATE PROCEDURE sp_messages(IN p_game_id INT)
         FROM message m
         INNER JOIN `user` u
         ON m.user_id = u.user_id
-        WHERE game_id = p_game_id;
+        WHERE game_id = p_game_id
+        ORDER BY m.`timestamp`;
 		
 	END $$
 

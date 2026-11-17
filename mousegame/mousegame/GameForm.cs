@@ -100,6 +100,15 @@ namespace mousegame
             }
         }
 
+        private void chatTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                sendMessageButton.PerformClick();
+            }
+        }
+
         private void gameTick_Tick(object sender, EventArgs e)
         {
             boardControl1.UpdateBoard();
@@ -162,10 +171,11 @@ namespace mousegame
         private void sendMessageButton_Click(object sender, EventArgs e)
         {
             GameDAO dao = new GameDAO();
-            Result result = dao.SendMessage(_userId, _gameId, chatTextBox.Text);
+            Result result = dao.SendMessage(_gameId, _userId, chatTextBox.Text);
             if (result.Status == "success")
             {
                 System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+                chatTextBox.Clear();
             }
             else
             {
