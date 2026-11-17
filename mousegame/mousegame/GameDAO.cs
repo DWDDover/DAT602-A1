@@ -346,6 +346,51 @@ namespace mousegame
             }
             return result;
         }
+
+        public Result ActivateTrap(int userId, int gameId, int tileId, int mousetrapId)
+        {
+            Result result = new Result();
+            try
+            {
+                using (var command = new MySqlCommand("sp_activate_trap", mySqlConnection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("p_user_id", userId);
+                    command.Parameters.AddWithValue("p_game_id", gameId);
+                    command.Parameters.AddWithValue("p_tile_id", tileId);
+                    command.Parameters.AddWithValue("p_mousetrap_id", mousetrapId);
+                    mySqlConnection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            result.Status = (string)reader["status"];
+                            result.Message = (string)reader["message"];
+                        }
+                    }
+                }
+            }
+            catch (MySqlException)
+            {
+                result.Status = "error";
+                result.Message = "Unable to connect to the database. Please try again later.";
+            }
+            catch (Exception)
+            {
+                result.Status = "error";
+                result.Message = "An unexpected error occurred.";
+            }
+            finally
+            {
+                if (mySqlConnection.State != ConnectionState.Closed)
+                {
+                    mySqlConnection.Close();
+                }
+            }
+            return result;
+        }
+
         public Result MovePlayer(int userId, int gameId, int tileId)
         {
             Result result = new Result();

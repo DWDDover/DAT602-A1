@@ -20,6 +20,7 @@ namespace mousegame
             this._gameId = gameId;
             this._admin = Admin;
             InitializeComponent();
+            inventoryGrid.CellClick += inventoryGrid_CellClick;
             gameNameLabel.Text = GameName(gameId);
         }
 
@@ -66,6 +67,20 @@ namespace mousegame
         private void inventoryLabel_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void inventoryGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            if (inventoryGrid.Rows[e.RowIndex].DataBoundItem is InventoryItem item)
+            {
+                boardControl1.SelectMousetrap(item.ItemId);
+                System.Diagnostics.Debug.WriteLine($"Selected mousetrap {item.ItemId}. Click a board tile to place it.");
+            }
         }
 
         private void GameForm_FormClosed(object sender, FormClosedEventArgs e)

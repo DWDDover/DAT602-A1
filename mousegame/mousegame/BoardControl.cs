@@ -12,11 +12,17 @@ namespace mousegame
     {
         private int userId;
         private int gameId;
+        private int? selectedMousetrapId;
 
         public void SetGame(int userId, int gameId)
         {
             this.userId = userId;
             this.gameId = gameId;
+        }
+
+        public void SelectMousetrap(int mousetrapId)
+        {
+            selectedMousetrapId = mousetrapId;
         }
 
         private readonly Dictionary<int, PictureBox> tileBoxes = new Dictionary<int, PictureBox>();
@@ -90,6 +96,7 @@ namespace mousegame
                     {
                         case "cheese": box.Image = cheeseImage; break;
                         case "mousetrap": box.Image = trapImage; break;
+                        case "mousetrapactivated": box.Image = trapActivatedImage; break;
                         case "mouse": box.Image = GetMouseImage(item.RefId); break;
                         case "cat": box.Image = catImage; break;
                     }
@@ -114,7 +121,26 @@ namespace mousegame
             int tileId = (int)clickedBox.Tag;
             GameDAO dao = new GameDAO();
 
-            Result result = dao.MovePlayer(userId, gameId, tileId);
+            Result result;
+
+            if (selectedMousetrapId.HasValue)
+            {
+                result = dao.ActivateTrap(userId, gameId, tileId, selectedMousetrapId.Value);
+
+                if (result.Status == "success")
+                {
+                    selectedMousetrapId = null;
+                }
+                else
+                {
+                    MessageBox.Show($"{result.Status}: {result.Message}");
+                }
+            }
+            else
+            {
+                result = dao.MovePlayer(userId, gameId, tileId);
+            }
+
             System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
             UpdateBoard();
         }
