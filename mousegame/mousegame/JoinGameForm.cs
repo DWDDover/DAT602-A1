@@ -34,11 +34,20 @@ namespace mousegame
         private void joinBtn_Click(object sender, EventArgs e)
         {
             int gameId = Convert.ToInt32(gameGrid.CurrentRow.Cells[0].Value);
-            GameForm gameForm = new GameForm(_userId, gameId, _admin);
-            gameForm.Show();
             GameDAO dao = new GameDAO();
-            dao.AddPlayer(_userId, gameId);
-            this.Close();
+            Result result = dao.AddPlayer(_userId, gameId);
+
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+                GameForm gameForm = new GameForm(_userId, gameId, _admin);
+                gameForm.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
         }
     }
 }

@@ -38,7 +38,8 @@ namespace mousegame
         {
             int gameId = Convert.ToInt32(gameGrid.CurrentRow.Cells[0].Value);
             AdminDAO dao = new AdminDAO();
-            dao.KillGame(gameId);
+            Result result = dao.KillGame(gameId);
+            MessageBox.Show($"{result.Status}: {result.Message}");
             UpdateDisplay();
         }
     }
