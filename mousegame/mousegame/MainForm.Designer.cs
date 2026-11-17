@@ -42,17 +42,18 @@
             // 
             titleLabel.AutoSize = true;
             titleLabel.Font = new Font("Segoe UI", 28F);
-            titleLabel.Location = new Point(387, 46);
+            titleLabel.Location = new Point(442, 61);
             titleLabel.Name = "titleLabel";
-            titleLabel.Size = new Size(264, 51);
+            titleLabel.Size = new Size(326, 62);
             titleLabel.TabIndex = 1;
             titleLabel.Text = "MOUSE GAME";
             // 
             // newGameBtn
             // 
-            newGameBtn.Location = new Point(450, 127);
+            newGameBtn.Location = new Point(514, 169);
+            newGameBtn.Margin = new Padding(3, 4, 3, 4);
             newGameBtn.Name = "newGameBtn";
-            newGameBtn.Size = new Size(133, 37);
+            newGameBtn.Size = new Size(152, 49);
             newGameBtn.TabIndex = 6;
             newGameBtn.Text = "New Game";
             newGameBtn.UseVisualStyleBackColor = true;
@@ -60,9 +61,10 @@
             // 
             // joinGameBtn
             // 
-            joinGameBtn.Location = new Point(450, 200);
+            joinGameBtn.Location = new Point(514, 267);
+            joinGameBtn.Margin = new Padding(3, 4, 3, 4);
             joinGameBtn.Name = "joinGameBtn";
-            joinGameBtn.Size = new Size(133, 37);
+            joinGameBtn.Size = new Size(152, 49);
             joinGameBtn.TabIndex = 7;
             joinGameBtn.Text = "Join Game";
             joinGameBtn.UseVisualStyleBackColor = true;
@@ -72,17 +74,18 @@
             // 
             adminToolsLabel.AutoSize = true;
             adminToolsLabel.Font = new Font("Segoe UI", 21F);
-            adminToolsLabel.Location = new Point(432, 285);
+            adminToolsLabel.Location = new Point(494, 380);
             adminToolsLabel.Name = "adminToolsLabel";
-            adminToolsLabel.Size = new Size(169, 38);
+            adminToolsLabel.Size = new Size(212, 47);
             adminToolsLabel.TabIndex = 8;
             adminToolsLabel.Text = "Admin Tools";
             // 
             // manageGamesBtn
             // 
-            manageGamesBtn.Location = new Point(450, 353);
+            manageGamesBtn.Location = new Point(514, 471);
+            manageGamesBtn.Margin = new Padding(3, 4, 3, 4);
             manageGamesBtn.Name = "manageGamesBtn";
-            manageGamesBtn.Size = new Size(133, 37);
+            manageGamesBtn.Size = new Size(152, 49);
             manageGamesBtn.TabIndex = 9;
             manageGamesBtn.Text = "Manage Games";
             manageGamesBtn.UseVisualStyleBackColor = true;
@@ -90,9 +93,10 @@
             // 
             // manageUsersBtn
             // 
-            manageUsersBtn.Location = new Point(450, 430);
+            manageUsersBtn.Location = new Point(514, 573);
+            manageUsersBtn.Margin = new Padding(3, 4, 3, 4);
             manageUsersBtn.Name = "manageUsersBtn";
-            manageUsersBtn.Size = new Size(133, 37);
+            manageUsersBtn.Size = new Size(152, 49);
             manageUsersBtn.TabIndex = 10;
             manageUsersBtn.Text = "Manage Users";
             manageUsersBtn.UseVisualStyleBackColor = true;
@@ -100,27 +104,31 @@
             // 
             // signOutBtn
             // 
-            signOutBtn.Location = new Point(883, 430);
+            signOutBtn.Location = new Point(1009, 573);
+            signOutBtn.Margin = new Padding(3, 4, 3, 4);
             signOutBtn.Name = "signOutBtn";
-            signOutBtn.Size = new Size(133, 37);
+            signOutBtn.Size = new Size(152, 49);
             signOutBtn.TabIndex = 11;
             signOutBtn.Text = "Sign Out";
             signOutBtn.UseVisualStyleBackColor = true;
+            signOutBtn.Click += signOutBtn_Click;
             // 
             // deleteAccountBtn
             // 
-            deleteAccountBtn.Location = new Point(883, 517);
+            deleteAccountBtn.Location = new Point(1009, 689);
+            deleteAccountBtn.Margin = new Padding(3, 4, 3, 4);
             deleteAccountBtn.Name = "deleteAccountBtn";
-            deleteAccountBtn.Size = new Size(133, 37);
+            deleteAccountBtn.Size = new Size(152, 49);
             deleteAccountBtn.TabIndex = 12;
             deleteAccountBtn.Text = "Delete Account";
             deleteAccountBtn.UseVisualStyleBackColor = true;
+            deleteAccountBtn.Click += deleteAccountBtn_Click;
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1046, 583);
+            ClientSize = new Size(1195, 777);
             Controls.Add(deleteAccountBtn);
             Controls.Add(signOutBtn);
             Controls.Add(manageUsersBtn);
@@ -129,6 +137,7 @@
             Controls.Add(joinGameBtn);
             Controls.Add(newGameBtn);
             Controls.Add(titleLabel);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "MainForm";
             Text = "MainForm";
             FormClosed += MainForm_FormClosed;

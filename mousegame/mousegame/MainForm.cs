@@ -62,5 +62,26 @@ namespace mousegame
         {
             Application.Exit();
         }
+
+        private void deleteAccountBtn_Click(object sender, EventArgs e)
+        {
+            AdminDAO dao = new AdminDAO();
+            Result result = dao.DeleteUser(_loginResult.UserId ?? 0);
+            if (result.Status == "success")
+            {
+                System.Diagnostics.Debug.WriteLine($"{result.Status}: {result.Message}");
+            }
+            else
+            {
+                MessageBox.Show($"{result.Status}: {result.Message}");
+            }
+        }
+
+        private void signOutBtn_Click(object sender, EventArgs e)
+        {
+            LoginForm loginForm = new LoginForm();
+            loginForm.Show();
+            this.Close();
+        }
     }
 }
