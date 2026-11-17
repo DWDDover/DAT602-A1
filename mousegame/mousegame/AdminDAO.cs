@@ -9,8 +9,9 @@ namespace mousegame
 {
     class AdminDAO : DatabaseAccessObject
     {
-        public void KillGame(int gameId)
+        public Result KillGame(int gameId)
         {
+            Result result = new Result();
             try
             {
                 using (var command = new MySqlCommand("sp_kill_game", mySqlConnection))
@@ -18,16 +19,29 @@ namespace mousegame
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@p_game_id", gameId);
                     mySqlConnection.Open();
+                    using(var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+
+                            {
+                                result.Status = (string)reader["status"];
+                                result.Message = (string)reader["message"];
+                            };
+                        }
+                    }
                     command.ExecuteNonQuery();
                 }
             }
             catch (MySqlException)
             {
-                MessageBox.Show("Unable to connect to the database. Please try again later.");
+                result.Status = "error";
+                result.Message = "Unable to connect to the database. Please try again later.";
             }
             catch (Exception)
             {
-                MessageBox.Show("An unexpected error occurred.");
+                result.Status = "error";
+                result.Message = "An unexpected error occurred.";
             }
             finally
             {
@@ -36,6 +50,7 @@ namespace mousegame
                     mySqlConnection.Close();
                 }
             }
+            return result;
         }
 
         public List<UserInfo> GetAllUsers()
