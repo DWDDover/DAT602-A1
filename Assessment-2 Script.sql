@@ -235,11 +235,13 @@ CREATE PROCEDURE GetAllGames()
 
 BEGIN
 
+	START TRANSACTION;
     SELECT g.game_id, g.`name`, COUNT(m.user_id) AS player_count
     FROM game g
     LEFT JOIN mouse m
 	ON m.game_id = g.game_id
     GROUP BY g.game_id, g.`name`;
+    COMMIT;
     
 END $$
 
@@ -260,7 +262,7 @@ CREATE PROCEDURE sp_login(IN p_username VARCHAR(50), p_password VARCHAR(50))
 BEGIN
 	
 	DECLARE attempts INT;
-    DECLARE acc_locked INT;
+    DECLARE v_locked INT;
     
     -- These are handlers for deadlock or lock timeout and will be in all procedures that 
     -- use concurrency, as well as the generic handler
@@ -277,12 +279,12 @@ BEGIN
     
     START TRANSACTION;
     
-	SELECT `locked` AS acc_locked
-    INTO acc_locked
+	SELECT `locked` AS v_locked
+    INTO v_locked
     FROM `user`
     WHERE username = p_username FOR UPDATE;
     
-	IF acc_locked = 1 THEN
+	IF v_locked = 1 THEN
 		SELECT 'locked' AS status, 'Account is locked, contact an administrator' AS message, NULL AS user_id, NULL AS `admin`;
         ROLLBACK;
 	ELSEIF EXISTS ( 
