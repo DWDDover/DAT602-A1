@@ -6,6 +6,8 @@ This repository contains the design documentation for the mousegame application
 as well as the MySQL database creation script. The script creates the tables and inserts test data as well as
 creating the procedures that allow the game to run.
 
+After the initial run of the entire script, CreateTables() needs to be called again to provide a fresh set of test data for the test calls. 
+
 In order to do the test calls properly the line ```SET GLOBAL event_scheduler = ON;``` needs to be commented
 out at the bottom of the script and then ran. To test the game application uncomment the line again and re run the script.
 
