@@ -1450,6 +1450,10 @@ CALL sp_update_user(1, 'newname');
 -- see updated name
 SELECT * FROM `user`
 WHERE user_id = 1;
+-- unique conflict
+CALL sp_update_user(1, 'dddddd');
+-- user doesnt exist longer exists
+CALL sp_update_user(9, 'gggggggg');
 
 -- UNLOCKED PLAYER
 
@@ -1465,6 +1469,8 @@ WHERE user_id = 5;
 UPDATE `user`
 SET `locked` = 1
 WHERE user_id = 5;
+-- unlocked user doesnt exist
+CALL sp_unlock_user(12);
 
 -- RMEOVE PLAYER FROM GAME
 
@@ -1476,6 +1482,10 @@ CALL sp_remove_player(3, 1);
 -- see updated list
 SELECT * FROM mouse
 WHERE game_id = 1;
+-- removing player that no longer exists
+CALL sp_remove_player(9, 1);
+-- removing from game that doesnt exist
+CALL sp_remove_player(1, 6);
 
 -- DELETE USER
 
@@ -1485,8 +1495,11 @@ SELECT * FROM user;
 CALL sp_delete_user(2);
 -- updated list
 SELECT * FROM user;
+-- player no longer exists
+CALL sp_delete_user(9);
 
- -- Other procedures required that are not part of the assessment set are below
+
+ -- Other procedures required that are not part of the assessments marked set set are below
  
 -- find the game name
 
@@ -1494,10 +1507,14 @@ DELIMITER $$
 CREATE PROCEDURE sp_gamename(IN p_game_id INT)
 
 	BEGIN
+    
+		START TRANSACTION;
         
         SELECT `name` AS game_name
         FROM game
         WHERE game_id = p_game_id;
+        
+        COMMIT;
 		
 	END $$
 
